@@ -1,35 +1,53 @@
-#include <string>
 #include <iostream>
 #include <fstream>
 #include <filesystem>
+#include "med.h"
 
-extern std::string med_filename;
-extern std::string med_content;
+extern std::string filename;
+extern std::string content;
 
-void med_error(const std::string error)
+extern void update_line_indices();
+
+void debug(const std::string txt)
 {
-    std::cerr << error << "\n";
+    std::cerr << txt << '\n';
+}
+
+void error(const std::string txt)
+{
+    std::cerr << txt << '\n';
     exit(1);
 }
 
-void med_init_io()
+void read_file()
 {
-    if (!std::filesystem::exists(med_filename)) {
-        med_error("File does not exist");
+    // Get the file size
+    auto size = std::filesystem::file_size(filename);
+
+    // Use binary mode because we want to transfer bytes exactly as they are
+    auto file = std::ifstream(filename, std::ios_base::in | std::ios_base::binary);
+
+    // Read file contents into memory
+    content.resize(size);
+    file.read(content.data(), size);
+
+    // Make sure the number of bytes read matches the file size
+    // https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines.html#es49-if-you-must-use-a-cast-use-a-named-cast
+    if (static_cast<std::streamsize>(size) != file.gcount()) {
+        error("Unable to read file");
     }
 
-    auto size = std::filesystem::file_size(med_filename);
-    auto file = std::ifstream(med_filename);
-
-    med_content = std::string(size, 0);
-    file.read(med_content.data(), size);
-
-    if (size != file.gcount()) {
-        med_error("Unable to read file");
-    }
+    update_line_indices();
 }
 
-void med_write_file()
+void write_file()
 {
 
+}
+
+void init_io()
+{
+    if (std::filesystem::exists(filename)) {
+        read_file();
+    }
 }

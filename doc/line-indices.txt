@@ -1,0 +1,49 @@
+tyhja:
+
+0 0
+
+yksi merkki: a
+
+0 1
+
+yksi merkki: N
+
+0 0
+1 1
+
+kaksi merkkia: ab
+
+0 2
+
+kaksi merkkia: aN
+
+0 1
+2 2
+
+kolme merkkia: aNb
+
+0 1
+2 3
+
+kolme merkkia: abN
+
+0 2
+3 3
+
+nelja merkkia: aNbN
+
+0 1
+2 3
+4 4
+
+nelja merkkia: aNNb
+
+0 1
+2 2
+3 4
+
+9 merkkia: abcNefghN
+
+0 3
+4 8
+9 9

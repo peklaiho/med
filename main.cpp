@@ -1,36 +1,48 @@
 #include <clocale>
-#include <string>
+#include "med.h"
 
-std::string med_filename;
-std::string med_content;
+// Global variables
+std::string filename;
+std::string content;
+std::vector<line_index_pair> line_indices;
+int point = 0;
+bool redraw_screen = false;
 
-extern void med_destroy_ui();
-extern void med_error(const std::string error);
-extern int med_get_key();
-extern void med_init_io();
-extern void med_init_ui();
+// External functions
+extern void destroy_ui();
+extern void draw_screen();
+extern void error(const std::string txt);
+extern int get_key();
+extern void init_io();
+extern void init_ui();
+
+void main_loop()
+{
+    int key = get_key();
+    draw_screen();
+}
 
 int main(int argc, char *argv[])
 {
     if (argc < 2) {
-        med_error("Give filename as argument");
+        error("Give filename as argument");
     }
 
-    med_filename = argv[1];
+    filename = argv[1];
 
     // Use locale from environment
     if (!setlocale(LC_ALL, "")) {
-        med_error("Unable to set locale");
+        error("Unable to set locale");
     }
 
     // Inits
-    med_init_io();
-    med_init_ui();
+    init_io();
+    init_ui();
 
-    med_error(med_content);
+    // Main loop
+    main_loop();
 
-    int key = med_get_key();
-
-    med_destroy_ui();
+    // Cleanup
+    destroy_ui();
     return 0;
 }
