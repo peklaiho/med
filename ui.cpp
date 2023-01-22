@@ -1,6 +1,5 @@
 #include <string>
 #include <vector>
-#include <cstdio>
 #include <ncurses.h>
 
 extern std::string med_version;
@@ -16,6 +15,7 @@ extern void debug(const std::string txt);
 extern void error(const std::string txt);
 extern unsigned int line_length(unsigned int index);
 extern unsigned int current_line();
+extern unsigned int current_col();
 
 bool redraw_screen = false;
 
@@ -50,19 +50,30 @@ void draw_statusbar()
 {
     color_set(1, 0);
 
-    char buf[column_count()];
+    std::string str(column_count(), ' ');
+    int col = 2;
 
-    auto current = current_line();
+    // Mode
+    if (edit_mode) {
+        str.replace(col, 4, "EDIT");
+        col += 6;
+    }
 
-    int len = snprintf(buf, column_count(), "  %4s  %4d:%-3d  %s  ",
-                       edit_mode ? "EDIT" : "",
-                       current + 1,
-                       point - line_indices[current],
-                       filename.data());
+    // Line and column
+    std::string temp = std::to_string(current_line() + 1);
+    str.replace(col, temp.length(), temp);
+    col += temp.length();
+    str.replace(col, 1, ":");
+    col++;
+    temp = std::to_string(current_col());
+    str.replace(col, temp.length(), temp);
+    col += temp.length() + 2;
 
-    debug(std::to_string(len));
+    // Filename
+    str.replace(col, filename.length(), filename);
+    col += filename.length();
 
-    mvaddnstr(line_count() - 2, 0, buf, len);
+    mvaddnstr(line_count() - 2, 0, str.data(), column_count());
 }
 
 void draw_minibuffer()
@@ -73,7 +84,7 @@ void draw_minibuffer()
 void draw_cursor()
 {
     auto current = current_line();
-    auto col = point - line_indices[current];
+    auto col = current_col();
 
     move(current - offset_line, col - offset_col);
 }

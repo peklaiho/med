@@ -40,6 +40,11 @@ unsigned int current_line()
     }
 }
 
+unsigned int current_col()
+{
+    return point - line_indices[current_line()];
+}
+
 void update_line_indices()
 {
     line_indices.clear();
@@ -71,18 +76,19 @@ void reconcile_by_scrolling()
 
 }
 
-// Setters that canll reconciliation as needed
+// Setters that call reconciliation as needed
 
 void set_point(int value)
 {
     if (value < 0) {
         value = 0;
     }
-    if (value >= content.length()) {
-        value = content.length() - 1;
+    if (value > static_cast<int>(content.length())) {
+        value = content.length();
     }
 
     point = static_cast<unsigned int>(value);
+
     reconcile_by_scrolling();
 }
 
@@ -163,12 +169,15 @@ void end_of_buffer()
 
 void forward_line()
 {
-
+    auto current = current_line();
+    auto len = line_length(current);
+    set_point(line_indices[current] + len);
 }
 
 void backward_line()
 {
-
+    auto current = current_line();
+    set_point(line_indices[current] - 1);
 }
 
 void back_to_indentation()
@@ -218,6 +227,7 @@ void scroll_page_down()
 void insert_character(char c)
 {
     content.insert(point, 1, c);
+    update_line_indices();
     forward_character();
 }
 

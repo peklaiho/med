@@ -38,8 +38,6 @@ void read_file()
     if (static_cast<std::streamsize>(size) != file.gcount()) {
         error("Unable to read file");
     }
-
-    update_line_indices();
 }
 
 void write_file()
@@ -52,4 +50,6 @@ void init_io()
     if (std::filesystem::exists(filename)) {
         read_file();
     }
+
+    update_line_indices();
 }
