@@ -7,6 +7,8 @@ std::string filename;
 std::string content;
 std::vector<line_index_pair> line_indices;
 cursor_position point = 0;
+cursor_position offset_line = 0;
+cursor_position offset_col = 0;
 bool redraw_screen = false;
 bool edit_mode = false;
 bool exit_app = false;

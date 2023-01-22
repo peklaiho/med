@@ -5,9 +5,61 @@ extern bool redraw_screen;
 extern bool edit_mode;
 extern bool exit_app;
 
-extern void debug(const std::string txt);
 extern void reconcile_by_scrolling();
+extern void forward_character();
+extern void backward_character();
+extern void forward_word();
+extern void backward_word();
+extern void forward_paragraph();
+extern void backward_paragraph();
+extern void begin_of_line();
+extern void end_of_line();
+extern void begin_of_buffer();
+extern void end_of_buffer();
+extern void forward_line();
+extern void backward_line();
+extern void back_to_indentation();
+extern void scroll_up();
+extern void scroll_down();
+extern void scroll_left();
+extern void scroll_right();
+extern void scroll_current_line_middle();
+extern void scroll_page_up();
+extern void scroll_page_down();
 extern void insert_character(char c);
+extern void delete_character_forward();
+extern void delete_character_backward();
+extern void delete_word_forward();
+extern void delete_word_backward();
+extern void delete_rest_of_line();
+
+// Use higher bit for modifier keys
+constexpr int ctrl_key = 1 << 28;
+constexpr int alt_key = 1 << 29;
+constexpr int shift_key = 1 << 30;
+
+constexpr bool is_ctrl(int key)
+{
+    return (key & ctrl_key) != 0;
+}
+
+constexpr bool is_alt(int key)
+{
+    return (key & alt_key) != 0;
+}
+
+constexpr bool is_shift(int key)
+{
+    return (key & shift_key) != 0;
+}
+
+constexpr int base_key(int key)
+{
+    return key &
+        (~ctrl_key) &
+        (~alt_key) &
+        (~shift_key);
+}
 
 int parse_raw_key(int key)
 {
@@ -162,14 +214,71 @@ void process_input()
         return;
     }
 
+    // Movement keys: same in edit and command modes
+    if (key == KEY_UP) {
+        if (is_ctrl(full_key)) {
+            scroll_up();
+        } else {
+            backward_line();
+        }
+        return;
+    } else if (key == KEY_DOWN) {
+        if (is_ctrl(full_key)) {
+            scroll_down();
+        } else {
+            forward_line();
+        }
+        return;
+    } else if (key == KEY_LEFT) {
+        if (is_ctrl(full_key)) {
+            scroll_left();
+        } else {
+            backward_character();
+        }
+        return;
+    } else if (key == KEY_RIGHT) {
+        if (is_ctrl(full_key)) {
+            scroll_right();
+        } else {
+            forward_character();
+        }
+        return;
+    } else if (key == KEY_PPAGE) {
+        scroll_page_up();
+        return;
+    } else if (key == KEY_NPAGE) {
+        scroll_page_down();
+        return;
+    } else if (key == KEY_HOME) {
+        if (is_ctrl(full_key)) {
+            begin_of_buffer();
+        } else {
+            begin_of_line();
+        }
+        return;
+    } else if (key == KEY_END) {
+        if (is_ctrl(full_key)) {
+            end_of_buffer();
+        } else {
+            end_of_line();
+        }
+        return;
+    }
+
+    // Mode-specific keys
     if (edit_mode) {
+        // Edit mode
+
         if (key == ';') {
+            // without modifiers ; exits edit mode
+            // with any modifier insert ; character normally
             if (key == full_key) {
-                // No modifiers, exit edit mode
                 edit_mode = false;
             } else {
                 insert_character(';');
             }
+        } else if (key == 10 || key == 13) {
+            insert_character(newline);
         } else if (key == full_key && key >= 32 && key <= 126) {
             // No modifiers, printable characters
             insert_character(key);
@@ -177,16 +286,70 @@ void process_input()
     } else {
         // Command mode
 
-        // We don't use modifiers - yet
-        if (key != full_key) {
-            return;
-        }
-
-        // Actions in command mode
-        if (key == 'f') {
+        if (key == 'a') {
+            if (is_alt(full_key)) {
+                begin_of_buffer();
+            } else {
+                begin_of_line();
+            }
+        } if (key == 'b') {
+            back_to_indentation();
+        } else if (key == 'd') {
+            if (is_alt(full_key)) {
+                delete_word_forward();
+            } else {
+                delete_character_forward();
+            }
+        } else if (key == 'e') {
+            if (is_alt(full_key)) {
+                end_of_buffer();
+            } else {
+                end_of_line();
+            }
+        } else if (key == 'f') {
             edit_mode = true;
+        } else if (key == 'h') {
+            if (is_alt(full_key)) {
+                delete_word_backward();
+            } else {
+                delete_character_backward();
+            }
+        } else if (key == 'i') {
+            if (is_alt(full_key)) {
+                backward_paragraph();
+            } else {
+                backward_line();
+            }
+        } else if (key == 'j') {
+            if (is_alt(full_key)) {
+                backward_word();
+            } else {
+                backward_character();
+            }
+        } else if (key == 'k') {
+            if (is_alt(full_key)) {
+                forward_paragraph();
+            } else {
+                forward_line();
+            }
+        } else if (key == 'l') {
+            if (is_alt(full_key)) {
+                forward_word();
+            } else {
+                forward_character();
+            }
         } else if (key == 'q') {
             exit_app = true;
+        } else if (key == 'r') {
+            scroll_current_line_middle();
+        } else if (key == 't') {
+            delete_rest_of_line();
+        } else if (key == 'v') {
+            if (is_alt(full_key)) {
+                scroll_page_up();
+            } else {
+                scroll_page_down();
+            }
         }
     }
 }

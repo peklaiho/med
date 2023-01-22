@@ -21,6 +21,8 @@ void update_line_indices()
     line_indices.push_back(make_line_index(start, end));
 }
 
+// Reconciliation
+
 // After moving the point or changing the content of the buffer, it is possible
 // the point is no longer visible on the screen.
 
@@ -37,9 +39,141 @@ void reconcile_by_scrolling()
 
 }
 
-// Editing commands
+// Movement commands
+
+void forward_character()
+{
+
+}
+
+void backward_character()
+{
+
+}
+
+void forward_word()
+{
+
+}
+
+void backward_word()
+{
+
+}
+
+void forward_paragraph()
+{
+
+}
+
+void backward_paragraph()
+{
+
+}
+
+void begin_of_line()
+{
+
+}
+
+void end_of_line()
+{
+
+}
+
+void begin_of_buffer()
+{
+
+}
+
+void end_of_buffer()
+{
+
+}
+
+void forward_line()
+{
+
+}
+
+void backward_line()
+{
+
+}
+
+void back_to_indentation()
+{
+
+}
+
+// Scrolling
+
+void scroll_up()
+{
+
+}
+
+void scroll_down()
+{
+
+}
+
+void scroll_left()
+{
+
+}
+
+void scroll_right()
+{
+
+}
+
+void scroll_current_line_middle()
+{
+
+}
+
+void scroll_page_up()
+{
+
+}
+
+void scroll_page_down()
+{
+
+}
+
+// Editing: insertion
+
 void insert_character(char c)
 {
     content.insert(point, 1, c);
     point++;
+}
+
+// Editing: deletion
+
+void delete_character_forward()
+{
+
+}
+
+void delete_character_backward()
+{
+
+}
+
+void delete_word_forward()
+{
+
+}
+
+void delete_word_backward()
+{
+
+}
+
+void delete_rest_of_line()
+{
+
 }

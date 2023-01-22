@@ -8,11 +8,6 @@ extern std::string content;
 
 extern void update_line_indices();
 
-void debug(const std::string txt)
-{
-    std::cerr << txt << '\n';
-}
-
 void error(const std::string txt)
 {
     std::cerr << txt << '\n';
