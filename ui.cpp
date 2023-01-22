@@ -1,9 +1,12 @@
 #include <ncurses.h>
 #include "med.h"
 
+extern std::string med_version;
+extern std::string filename;
 extern std::string content;
 extern std::vector<line_index_pair> line_indices;
 extern bool redraw_screen;
+extern bool edit_mode;
 
 extern void error(const std::string txt);
 
@@ -42,7 +45,17 @@ void draw_statusbar()
     color_set(1, 0);
 
     std::string str(column_count(), ' ');
-    mvaddnstr(line_count() - 2, 0, str.data(), column_count());
+
+    if (edit_mode) {
+        str.replace(2, 4, "EDIT");
+    }
+
+    str.replace(8, filename.length(), filename);
+
+    str.replace(column_count() - 9, 3, "med");
+    str.replace(column_count() - 5, 3, med_version);
+
+    mvaddnstr(line_count() - 2, 0, str.data(), str.length());
 }
 
 void draw_minibuffer()
@@ -61,8 +74,9 @@ void draw_screen()
         clear();
     } else {
         erase();
-        redraw_screen = false;
     }
+
+    redraw_screen = false;
 
     draw_buffer();
     draw_statusbar();
@@ -103,9 +117,4 @@ void init_ui()
 void destroy_ui()
 {
     endwin();
-}
-
-int get_key()
-{
-    return getch();
 }

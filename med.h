@@ -29,6 +29,37 @@ constexpr line_index_pair make_line_index(line_index start, line_index end)
 static_assert(line_start(make_line_index(123, 456)) == 123);
 static_assert(line_end(make_line_index(123, 456)) == 456);
 
+// Keys
+
+constexpr int ctrl_key = 1 << 28;
+constexpr int alt_key = 1 << 29;
+constexpr int shift_key = 1 << 30;
+
+constexpr bool is_ctrl(int key)
+{
+    return (key & ctrl_key) != 0;
+}
+
+constexpr bool is_alt(int key)
+{
+    return (key & alt_key) != 0;
+}
+
+constexpr bool is_shift(int key)
+{
+    return (key & shift_key) != 0;
+}
+
+constexpr int base_key(int key)
+{
+    return key &
+        (~ctrl_key) &
+        (~alt_key) &
+        (~shift_key);
+}
+
 // Other data types
+
+using cursor_position = unsigned int;
 
 constexpr char newline = '\n';

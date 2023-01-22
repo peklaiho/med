@@ -8,7 +8,7 @@ LDFLAGS = -O2 -Wall -Wextra -std=c++20
 
 # Link the object files into an executable
 # The variable $^ is replaced with all the dependencies
-med: main.o io.o ui.o funcs.o
+med: funcs.o io.o key.o main.o ui.o
 	$(CXX) $(LDFLAGS) -lncurses $^ -o $@
 
 # Compile individual .cpp files into .o object files

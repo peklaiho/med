@@ -2,24 +2,29 @@
 #include "med.h"
 
 // Global variables
+std::string med_version = "0.1";
 std::string filename;
 std::string content;
 std::vector<line_index_pair> line_indices;
-int point = 0;
+cursor_position point = 0;
 bool redraw_screen = false;
+bool edit_mode = false;
+bool exit_app = false;
 
 // External functions
 extern void destroy_ui();
 extern void draw_screen();
 extern void error(const std::string txt);
-extern int get_key();
 extern void init_io();
 extern void init_ui();
+extern void process_input();
 
 void main_loop()
 {
-    int key = get_key();
-    draw_screen();
+    while (!exit_app) {
+        process_input();
+        draw_screen();
+    }
 }
 
 int main(int argc, char *argv[])
