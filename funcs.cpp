@@ -16,6 +16,30 @@ unsigned int line_length(unsigned int index)
     }
 }
 
+unsigned int current_line()
+{
+    // Start searching from offset_line
+    unsigned int line = offset_line;
+
+    // Choose last line if too far
+    if (line >= line_indices.size()) {
+        line = line_indices.size() - 1;
+    }
+
+    while (true) {
+        auto first = line_indices[line];
+        auto len = line_length(line);
+
+        if (point < first) {
+            line--;
+        } else if (point >= (first + len)) {
+            line++;
+        } else {
+            return line;
+        }
+    }
+}
+
 void update_line_indices()
 {
     line_indices.clear();
@@ -47,16 +71,51 @@ void reconcile_by_scrolling()
 
 }
 
+// Setters that canll reconciliation as needed
+
+void set_point(int value)
+{
+    if (value < 0) {
+        value = 0;
+    }
+    if (value >= content.length()) {
+        value = content.length() - 1;
+    }
+
+    point = static_cast<unsigned int>(value);
+    reconcile_by_scrolling();
+}
+
+void set_offset_line(int value)
+{
+    if (value < 0) {
+        value = 0;
+    }
+
+    offset_line = value;
+    reconcile_by_moving_point();
+}
+
+void set_offset_col(int value)
+{
+    if (value < 0) {
+        value = 0;
+    }
+
+    offset_col = value;
+    reconcile_by_moving_point();
+}
+
 // Movement commands
 
 void forward_character()
 {
-
+    set_point(point + 1);
 }
 
 void backward_character()
 {
-
+    set_point(point - 1);
 }
 
 void forward_word()
@@ -81,22 +140,25 @@ void backward_paragraph()
 
 void begin_of_line()
 {
-
+    auto current = current_line();
+    set_point(line_indices[current]);
 }
 
 void end_of_line()
 {
-
+    auto current = current_line();
+    auto len = line_length(current);
+    set_point(line_indices[current] + len - 1);
 }
 
 void begin_of_buffer()
 {
-
+    set_point(0);
 }
 
 void end_of_buffer()
 {
-
+    set_point(content.length() - 1);
 }
 
 void forward_line()
@@ -118,26 +180,22 @@ void back_to_indentation()
 
 void scroll_up()
 {
-    if (offset_line > 0) {
-        offset_line--;
-    }
+    set_offset_line(offset_line - 1);
 }
 
 void scroll_down()
 {
-    offset_line++;
+    set_offset_line(offset_line + 1);
 }
 
 void scroll_left()
 {
-    if (offset_col > 0) {
-        offset_col--;
-    }
+    set_offset_col(offset_col - 1);
 }
 
 void scroll_right()
 {
-    offset_col++;
+    set_offset_col(offset_col + 1);
 }
 
 void scroll_current_line_middle()
@@ -160,7 +218,7 @@ void scroll_page_down()
 void insert_character(char c)
 {
     content.insert(point, 1, c);
-    point++;
+    forward_character();
 }
 
 // Editing: deletion

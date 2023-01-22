@@ -16,6 +16,7 @@ bool exit_app = false;
 // External functions
 extern void destroy_ui();
 extern void draw_screen();
+extern void debug(const std::string txt);
 extern void error(const std::string txt);
 extern void init_io();
 extern void init_ui();

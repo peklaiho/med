@@ -1,26 +1,30 @@
 #include <string>
 #include <vector>
+#include <cstdio>
 #include <ncurses.h>
 
 extern std::string med_version;
 extern std::string filename;
 extern std::string content;
 extern std::vector<unsigned int> line_indices;
+extern unsigned int point;
 extern unsigned int offset_line;
 extern unsigned int offset_col;
 extern bool edit_mode;
 
+extern void debug(const std::string txt);
 extern void error(const std::string txt);
 extern unsigned int line_length(unsigned int index);
+extern unsigned int current_line();
 
 bool redraw_screen = false;
 
-inline unsigned int line_count()
+unsigned int line_count()
 {
     return static_cast<unsigned int>(LINES);
 }
 
-inline unsigned int column_count()
+unsigned int column_count()
 {
     return static_cast<unsigned int>(COLS);
 }
@@ -33,8 +37,9 @@ void draw_buffer()
         unsigned int line = row + offset_line;
         if (line < line_indices.size()) {
             unsigned int start = line_indices[line] + offset_col;
-            unsigned int len = line_length(line) - offset_col;
+            int len = static_cast<int>(line_length(line)) - offset_col - 1;
             if (len > 0) {
+                // debug("row " + std::to_string(row) + ", line " + std::to_string(line) + ", len " + std::to_string(len));
                 mvaddnstr(row, 0, content.data() + start, len);
             }
         }
@@ -45,18 +50,19 @@ void draw_statusbar()
 {
     color_set(1, 0);
 
-    std::string str(column_count(), ' ');
+    char buf[column_count()];
 
-    if (edit_mode) {
-        str.replace(2, 4, "EDIT");
-    }
+    auto current = current_line();
 
-    str.replace(8, filename.length(), filename);
+    int len = snprintf(buf, column_count(), "  %4s  %4d:%-3d  %s  ",
+                       edit_mode ? "EDIT" : "",
+                       current + 1,
+                       point - line_indices[current],
+                       filename.data());
 
-    str.replace(column_count() - 9, 3, "med");
-    str.replace(column_count() - 5, 3, med_version);
+    debug(std::to_string(len));
 
-    mvaddnstr(line_count() - 2, 0, str.data(), str.length());
+    mvaddnstr(line_count() - 2, 0, buf, len);
 }
 
 void draw_minibuffer()
@@ -66,7 +72,10 @@ void draw_minibuffer()
 
 void draw_cursor()
 {
-    move(0, 0);
+    auto current = current_line();
+    auto col = point - line_indices[current];
+
+    move(current - offset_line, col - offset_col);
 }
 
 void draw_screen()
@@ -101,7 +110,6 @@ void init_ui()
 
     raw();
     noecho();
-    meta(stdscr, true);
     intrflush(stdscr, false);
     keypad(stdscr, true);
 
