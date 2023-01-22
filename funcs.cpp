@@ -1,4 +1,5 @@
-#include "med.h"
+#include <string>
+#include <vector>
 
 extern std::string content;
 extern std::vector<unsigned int> line_indices;
@@ -22,7 +23,7 @@ void update_line_indices()
     line_indices.push_back(0);
 
     for (unsigned int i = 0; i < content.size(); i++) {
-        if (content[i] == newline) {
+        if (content[i] == '\n') {
             line_indices.push_back(i + 1);
         }
     }

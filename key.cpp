@@ -1,5 +1,4 @@
 #include <ncurses.h>
-#include "med.h"
 
 extern bool redraw_screen;
 extern bool edit_mode;
@@ -278,7 +277,7 @@ void process_input()
                 insert_character(';');
             }
         } else if (key == 10 || key == 13) {
-            insert_character(newline);
+            insert_character('\n');
         } else if (key == full_key && key >= 32 && key <= 126) {
             // No modifiers, printable characters
             insert_character(key);

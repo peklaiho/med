@@ -1,5 +1,6 @@
+#include <string>
+#include <vector>
 #include <clocale>
-#include "med.h"
 
 // Global variables
 std::string med_version = "0.1";

@@ -1,5 +1,6 @@
+#include <string>
+#include <vector>
 #include <ncurses.h>
-#include "med.h"
 
 extern std::string med_version;
 extern std::string filename;

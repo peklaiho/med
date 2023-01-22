@@ -13,7 +13,7 @@ med: funcs.o io.o key.o main.o ui.o
 
 # Compile individual .cpp files into .o object files
 # The variable $< is replaced with the first dependency
-%.o: %.cpp med.h
+%.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Delete the executable and object files
