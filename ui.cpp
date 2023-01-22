@@ -4,39 +4,39 @@
 extern std::string med_version;
 extern std::string filename;
 extern std::string content;
-extern std::vector<line_index_pair> line_indices;
-extern bool redraw_screen;
+extern std::vector<unsigned int> line_indices;
+extern unsigned int offset_line;
+extern unsigned int offset_col;
 extern bool edit_mode;
 
 extern void error(const std::string txt);
+extern unsigned int line_length(unsigned int index);
 
-inline std::size_t line_count()
+bool redraw_screen = false;
+
+inline unsigned int line_count()
 {
-    return static_cast<std::size_t>(LINES);
+    return static_cast<unsigned int>(LINES);
 }
 
-inline std::size_t column_count()
+inline unsigned int column_count()
 {
-    return static_cast<std::size_t>(COLS);
+    return static_cast<unsigned int>(COLS);
 }
 
 void draw_buffer()
 {
-    line_index start, end;
-    std::size_t len;
-
     color_set(0, 0);
 
-    for (std::size_t i = 0; i < line_indices.size() && i < (line_count() - 2); i++) {
-        start = line_start(line_indices[i]);
-        end = line_end(line_indices[i]);
-
-        len = end - start;
-        if (len > column_count()) {
-            len = column_count();
+    for (unsigned int row = 0; row < (line_count() - 2); row++) {
+        unsigned int line = row + offset_line;
+        if (line < line_indices.size()) {
+            unsigned int start = line_indices[line] + offset_col;
+            unsigned int len = line_length(line) - offset_col;
+            if (len > 0) {
+                mvaddnstr(row, 0, content.data() + start, len);
+            }
         }
-
-        mvaddnstr(i, 0, content.data() + start, len);
     }
 }
 

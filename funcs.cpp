@@ -1,24 +1,31 @@
 #include "med.h"
 
 extern std::string content;
-extern std::vector<line_index_pair> line_indices;
-extern cursor_position point;
+extern std::vector<unsigned int> line_indices;
+extern unsigned int point;
+extern unsigned int offset_line;
+extern unsigned int offset_col;
+
+unsigned int line_length(unsigned int index)
+{
+    if (index == line_indices.size() - 1) {
+        return content.length() - line_indices[index];
+    } else {
+        return line_indices[index + 1] - line_indices[index];
+    }
+}
 
 void update_line_indices()
 {
     line_indices.clear();
 
-    line_index start = 0;
-    line_index end = 0;
+    line_indices.push_back(0);
 
-    for (; end < content.size(); end++) {
-        if (content[end] == newline) {
-            line_indices.push_back(make_line_index(start, end));
-            start = end + 1;
+    for (unsigned int i = 0; i < content.size(); i++) {
+        if (content[i] == newline) {
+            line_indices.push_back(i + 1);
         }
     }
-
-    line_indices.push_back(make_line_index(start, end));
 }
 
 // Reconciliation
@@ -110,22 +117,26 @@ void back_to_indentation()
 
 void scroll_up()
 {
-
+    if (offset_line > 0) {
+        offset_line--;
+    }
 }
 
 void scroll_down()
 {
-
+    offset_line++;
 }
 
 void scroll_left()
 {
-
+    if (offset_col > 0) {
+        offset_col--;
+    }
 }
 
 void scroll_right()
 {
-
+    offset_col++;
 }
 
 void scroll_current_line_middle()
