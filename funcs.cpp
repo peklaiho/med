@@ -7,8 +7,15 @@ extern unsigned int point;
 extern unsigned int offset_line;
 extern unsigned int offset_col;
 
+extern void debug(const std::string txt);
+extern void error(const std::string txt);
+
 unsigned int line_length(unsigned int index)
 {
+    if (index >= line_indices.size()) {
+        error("Attempt to get line length for invalid index");
+    }
+
     if (index == line_indices.size() - 1) {
         return content.length() - line_indices[index];
     } else {
@@ -18,22 +25,11 @@ unsigned int line_length(unsigned int index)
 
 unsigned int current_line()
 {
-    // Start searching from offset_line
-    unsigned int line = offset_line;
-
-    // Choose last line if too far
-    if (line >= line_indices.size()) {
-        line = line_indices.size() - 1;
-    }
+    unsigned int line = line_indices.size() - 1;
 
     while (true) {
-        auto first = line_indices[line];
-        auto len = line_length(line);
-
-        if (point < first) {
+        if (point < line_indices[line]) {
             line--;
-        } else if (point >= (first + len)) {
-            line++;
         } else {
             return line;
         }
@@ -94,6 +90,11 @@ void set_point(int value)
 
 void set_offset_line(int value)
 {
+    int max = line_indices.size() - 2;
+
+    if (value > max) {
+        value = max;
+    }
     if (value < 0) {
         value = 0;
     }
@@ -104,6 +105,11 @@ void set_offset_line(int value)
 
 void set_offset_col(int value)
 {
+    int max = line_length(current_line()) - 2;
+
+    if (value > max) {
+        value = max;
+    }
     if (value < 0) {
         value = 0;
     }
@@ -235,12 +241,19 @@ void insert_character(char c)
 
 void delete_character_forward()
 {
-
+    if (point < content.length()) {
+        content.erase(point, 1);
+        update_line_indices();
+    }
 }
 
 void delete_character_backward()
 {
-
+    if (point > 0) {
+        content.erase(point - 1, 1);
+        update_line_indices();
+        backward_character();
+    }
 }
 
 void delete_word_forward()

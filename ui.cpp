@@ -37,6 +37,8 @@ void draw_buffer()
         unsigned int line = row + offset_line;
         if (line < line_indices.size()) {
             unsigned int start = line_indices[line] + offset_col;
+            // -1 to remove the newline character from the end,
+            // we do not draw that on the screen!
             int len = static_cast<int>(line_length(line)) - offset_col - 1;
             if (len > 0) {
                 // debug("row " + std::to_string(row) + ", line " + std::to_string(line) + ", len " + std::to_string(len));
@@ -66,6 +68,16 @@ void draw_statusbar()
     str.replace(col, 1, ":");
     col++;
     temp = std::to_string(current_col());
+    str.replace(col, temp.length(), temp);
+    col += temp.length() + 2;
+
+    // Debug
+    temp = std::to_string(point);
+    str.replace(col, temp.length(), temp);
+    col += temp.length();
+    str.replace(col, 1, ":");
+    col++;
+    temp = std::to_string(content.length());
     str.replace(col, temp.length(), temp);
     col += temp.length() + 2;
 
