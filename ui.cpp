@@ -12,7 +12,7 @@ extern unsigned int offset_col;
 extern bool edit_mode;
 
 extern void error(const std::string txt);
-extern unsigned int line_length(unsigned int index);
+extern unsigned int line_end(unsigned int index);
 extern unsigned int current_line();
 extern unsigned int current_col();
 
@@ -36,9 +36,8 @@ void draw_buffer()
         unsigned int line = row + offset_line;
         if (line < line_indices.size()) {
             unsigned int start = line_indices[line] + offset_col;
-            // -1 to remove the newline character from the end,
-            // we do not draw that on the screen!
-            int len = static_cast<int>(line_length(line)) - offset_col - 1;
+            unsigned int end = line_end(line);
+            int len = end - start;
             if (len > 0) {
                 mvaddnstr(row, 0, content.data() + start, len);
             }

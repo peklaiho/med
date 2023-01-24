@@ -9,16 +9,13 @@ extern unsigned int offset_col;
 
 extern void error(const std::string txt);
 
-unsigned int line_length(unsigned int index)
+// Return last index of current line
+unsigned int line_end(unsigned int line)
 {
-    if (index >= line_indices.size()) {
-        error("Attempt to get line length for invalid index");
-    }
-
-    if (index == line_indices.size() - 1) {
-        return content.length() - line_indices[index];
+    if (line == line_indices.size() - 1) {
+        return content.length();
     } else {
-        return line_indices[index + 1] - line_indices[index];
+        return line_indices[line + 1] - 1;
     }
 }
 
@@ -68,12 +65,16 @@ void reconcile_by_moving_point()
 
 void reconcile_by_scrolling()
 {
+    auto line = current_line();
 
+    if (line < offset_line) {
+
+    }
 }
 
 // Setters that call reconciliation as needed
 
-void set_point(int value)
+void set_point(int value, bool reconcile)
 {
     if (value > static_cast<int>(content.length())) {
         value = content.length();
@@ -84,10 +85,12 @@ void set_point(int value)
 
     point = static_cast<unsigned int>(value);
 
-    reconcile_by_scrolling();
+    if (reconcile) {
+        reconcile_by_scrolling();
+    }
 }
 
-void set_offset_line(int value)
+void set_offset_line(int value, bool reconcile)
 {
     int max = line_indices.size() - 2;
 
@@ -99,12 +102,16 @@ void set_offset_line(int value)
     }
 
     offset_line = value;
-    reconcile_by_moving_point();
+
+    if (reconcile) {
+        reconcile_by_moving_point();
+    }
 }
 
-void set_offset_col(int value)
+void set_offset_col(int value, bool reconcile)
 {
-    int max = line_length(current_line()) - 2;
+    auto current = current_line();
+    int max = line_end(current) - line_indices[current] - 2;
 
     if (value > max) {
         value = max;
@@ -114,19 +121,22 @@ void set_offset_col(int value)
     }
 
     offset_col = value;
-    reconcile_by_moving_point();
+
+    if (reconcile) {
+        reconcile_by_moving_point();
+    }
 }
 
 // Movement commands
 
 void forward_character()
 {
-    set_point(point + 1);
+    set_point(point + 1, true);
 }
 
 void backward_character()
 {
-    set_point(point - 1);
+    set_point(point - 1, true);
 }
 
 void forward_word()
@@ -151,38 +161,40 @@ void backward_paragraph()
 
 void begin_of_line()
 {
-    auto current = current_line();
-    set_point(line_indices[current]);
+    set_point(line_indices[current_line()], true);
 }
 
 void end_of_line()
 {
-    auto current = current_line();
-    auto len = line_length(current);
-    set_point(line_indices[current] + len - 1);
+    set_point(line_end(current_line()), true);
 }
 
 void begin_of_buffer()
 {
-    set_point(0);
+    set_point(0, true);
 }
 
 void end_of_buffer()
 {
-    set_point(content.length() - 1);
+    set_point(content.length() - 1, true);
 }
 
 void forward_line()
 {
     auto current = current_line();
-    auto len = line_length(current);
-    set_point(line_indices[current] + len);
+
+    if (current < (line_indices.size() - 1)) {
+        set_point(line_indices[current + 1], true);
+    }
 }
 
 void backward_line()
 {
     auto current = current_line();
-    set_point(line_indices[current] - 1);
+
+    if (current > 0) {
+        set_point(line_indices[current - 1], true);
+    }
 }
 
 void back_to_indentation()
@@ -194,22 +206,22 @@ void back_to_indentation()
 
 void scroll_up()
 {
-    set_offset_line(offset_line - 1);
+    set_offset_line(offset_line - 1, true);
 }
 
 void scroll_down()
 {
-    set_offset_line(offset_line + 1);
+    set_offset_line(offset_line + 1, true);
 }
 
 void scroll_left()
 {
-    set_offset_col(offset_col - 1);
+    set_offset_col(offset_col - 1, true);
 }
 
 void scroll_right()
 {
-    set_offset_col(offset_col + 1);
+    set_offset_col(offset_col + 1, true);
 }
 
 void scroll_current_line_middle()
