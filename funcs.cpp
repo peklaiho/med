@@ -7,7 +7,6 @@ extern unsigned int point;
 extern unsigned int offset_line;
 extern unsigned int offset_col;
 
-extern void debug(const std::string txt);
 extern void error(const std::string txt);
 
 unsigned int line_length(unsigned int index)
@@ -76,11 +75,11 @@ void reconcile_by_scrolling()
 
 void set_point(int value)
 {
-    if (value < 0) {
-        value = 0;
-    }
     if (value > static_cast<int>(content.length())) {
         value = content.length();
+    }
+    if (value < 0) {
+        value = 0;
     }
 
     point = static_cast<unsigned int>(value);

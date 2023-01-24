@@ -11,7 +11,6 @@ extern unsigned int offset_line;
 extern unsigned int offset_col;
 extern bool edit_mode;
 
-extern void debug(const std::string txt);
 extern void error(const std::string txt);
 extern unsigned int line_length(unsigned int index);
 extern unsigned int current_line();
@@ -41,7 +40,6 @@ void draw_buffer()
             // we do not draw that on the screen!
             int len = static_cast<int>(line_length(line)) - offset_col - 1;
             if (len > 0) {
-                // debug("row " + std::to_string(row) + ", line " + std::to_string(line) + ", len " + std::to_string(len));
                 mvaddnstr(row, 0, content.data() + start, len);
             }
         }

@@ -5,8 +5,6 @@ extern bool redraw_screen;
 extern bool edit_mode;
 extern bool exit_app;
 
-extern void debug(const std::string txt);
-
 extern void reconcile_by_scrolling();
 extern void forward_character();
 extern void backward_character();
@@ -35,22 +33,17 @@ extern void delete_word_forward();
 extern void delete_word_backward();
 extern void delete_rest_of_line();
 
-int read_one_key()
-{
-    return getch();
-}
-
 int read_key_no_delay()
 {
     nodelay(stdscr, true);
-    int key = read_one_key();
+    int key = getch();
     nodelay(stdscr, false);
     return key;
 }
 
 void process_input()
 {
-    int key = read_one_key();
+    int key = getch();
     bool is_alt = false;
 
     if (key == 27) {
@@ -64,8 +57,6 @@ void process_input()
         }
     }
 
-    debug(std::to_string(key) + (is_alt ? " ALT" : ""));
-
     // Resize window
     if (key == KEY_RESIZE) {
         redraw_screen = true;
@@ -73,56 +64,9 @@ void process_input()
         return;
     }
 
-    // Movement keys: same in edit and command modes
-    if (key == KEY_UP) {
-        // backward_line();
-        scroll_up();
-        return;
-    } else if (key == KEY_DOWN) {
-        // forward_line();
-        scroll_down();
-        return;
-    } else if (key == KEY_LEFT) {
-        // backward_character();
-        scroll_left();
-        return;
-    } else if (key == KEY_RIGHT) {
-        // forward_character();
-        scroll_right();
-        return;
-    } else if (key == KEY_PPAGE) {
-        scroll_page_up();
-        return;
-    } else if (key == KEY_NPAGE) {
-        scroll_page_down();
-        return;
-    } else if (key == KEY_HOME) {
-        begin_of_line();
-        return;
-    } else if (key == KEY_END) {
-        end_of_line();
-        return;
-    }
-
-    // Mode-specific keys
-    if (edit_mode) {
-        // Edit mode
-
-        if (key == ';') {
-            if (is_alt) {
-                insert_character(';');
-            } else {
-                edit_mode = false;
-            }
-        } else if (key == 10 || key == 13) {
-            insert_character('\n');
-        } else if (key >= 32 && key <= 126) {
-            // Printable characters
-            insert_character(key);
-        }
-    } else {
-        // Command mode
-
+    // Command mode: keys a to z are reserved
+    // for special commands.
+    if (!edit_mode && key >= 'a' && key <= 'z') {
         if (key == 'a') {
             if (is_alt) {
                 begin_of_buffer();
@@ -188,5 +132,45 @@ void process_input()
                 scroll_page_down();
             }
         }
+
+        return;
+    }
+
+    // Special keys
+    if (key == KEY_UP) {
+        // backward_line();
+        scroll_up();
+    } else if (key == KEY_DOWN) {
+        // forward_line();
+        scroll_down();
+    } else if (key == KEY_LEFT) {
+        // backward_character();
+        scroll_left();
+    } else if (key == KEY_RIGHT) {
+        // forward_character();
+        scroll_right();
+    } else if (key == KEY_PPAGE) {
+        scroll_page_up();
+    } else if (key == KEY_NPAGE) {
+        scroll_page_down();
+    } else if (key == KEY_HOME) {
+        begin_of_line();
+    } else if (key == KEY_END) {
+        end_of_line();
+    } else if (key == KEY_DC) {
+        delete_character_forward();
+    } else if (key == KEY_BACKSPACE) {
+        delete_character_backward();
+    } else if (key == ';') {
+        if (is_alt) {
+            insert_character(';');
+        } else {
+            edit_mode = false;
+        }
+    } else if (key == 10 || key == 13) {
+        insert_character('\n');
+    } else if (key >= 32 && key <= 126) {
+        // Printable characters
+        insert_character(key);
     }
 }
