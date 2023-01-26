@@ -38,7 +38,11 @@ void draw_buffer()
             int start = line_indices[line] + offset_col;
             int end = line_end(line);
             int len = end - start;
-            // TODO: newline?
+
+            if (len > column_count()) {
+                len = column_count();
+            }
+
             if (len > 0) {
                 mvaddnstr(row, 0, content.data() + start, len);
             }
