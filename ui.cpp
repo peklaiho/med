@@ -5,39 +5,40 @@
 extern std::string med_version;
 extern std::string filename;
 extern std::string content;
-extern std::vector<unsigned int> line_indices;
-extern unsigned int point;
-extern unsigned int offset_line;
-extern unsigned int offset_col;
+extern std::vector<int> line_indices;
+extern int point;
+extern int offset_line;
+extern int offset_col;
 extern bool edit_mode;
 
 extern void error(const std::string txt);
-extern unsigned int line_end(unsigned int index);
-extern unsigned int current_line();
-extern unsigned int current_col();
+extern int line_end(int index);
+extern int current_line();
+extern int current_col();
 
 bool redraw_screen = false;
 
-unsigned int line_count()
+int line_count()
 {
-    return static_cast<unsigned int>(LINES);
+    return LINES;
 }
 
-unsigned int column_count()
+int column_count()
 {
-    return static_cast<unsigned int>(COLS);
+    return COLS;
 }
 
 void draw_buffer()
 {
     color_set(0, 0);
 
-    for (unsigned int row = 0; row < (line_count() - 2); row++) {
-        unsigned int line = row + offset_line;
-        if (line < line_indices.size()) {
-            unsigned int start = line_indices[line] + offset_col;
-            unsigned int end = line_end(line);
+    for (int row = 0; row < (line_count() - 2); row++) {
+        int line = row + offset_line;
+        if (line < static_cast<int>(line_indices.size())) {
+            int start = line_indices[line] + offset_col;
+            int end = line_end(line);
             int len = end - start;
+            // TODO: newline?
             if (len > 0) {
                 mvaddnstr(row, 0, content.data() + start, len);
             }
@@ -69,12 +70,12 @@ void draw_statusbar()
     col += temp.length() + 2;
 
     // Debug
-    temp = std::to_string(point);
+    temp = std::to_string(offset_line);
     str.replace(col, temp.length(), temp);
     col += temp.length();
     str.replace(col, 1, ":");
     col++;
-    temp = std::to_string(content.length());
+    temp = std::to_string(offset_col);
     str.replace(col, temp.length(), temp);
     col += temp.length() + 2;
 
@@ -92,10 +93,7 @@ void draw_minibuffer()
 
 void draw_cursor()
 {
-    auto current = current_line();
-    auto col = current_col();
-
-    move(current - offset_line, col - offset_col);
+    move(current_line() - offset_line, current_col() - offset_col);
 }
 
 void draw_screen()

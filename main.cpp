@@ -6,10 +6,10 @@
 std::string med_version = "0.1";
 std::string filename;
 std::string content;
-std::vector<unsigned int> line_indices;
-unsigned int point = 0;
-unsigned int offset_line = 0;
-unsigned int offset_col = 0;
+std::vector<int> line_indices;
+int point = 0;
+int offset_line = 0;
+int offset_col = 0;
 bool edit_mode = false;
 bool exit_app = false;
 

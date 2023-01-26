@@ -2,26 +2,27 @@
 #include <vector>
 
 extern std::string content;
-extern std::vector<unsigned int> line_indices;
-extern unsigned int point;
-extern unsigned int offset_line;
-extern unsigned int offset_col;
+extern std::vector<int> line_indices;
+extern int point;
+extern int offset_line;
+extern int offset_col;
 
-extern void error(const std::string txt);
+extern int line_count();
+extern int column_count();
 
 // Return last index of current line
-unsigned int line_end(unsigned int line)
+int line_end(int line)
 {
-    if (line == line_indices.size() - 1) {
+    if (line == static_cast<int>(line_indices.size()) - 1) {
         return content.length();
     } else {
         return line_indices[line + 1] - 1;
     }
 }
 
-unsigned int current_line()
+int current_line()
 {
-    unsigned int line = line_indices.size() - 1;
+    int line = line_indices.size() - 1;
 
     while (true) {
         if (point < line_indices[line]) {
@@ -32,7 +33,7 @@ unsigned int current_line()
     }
 }
 
-unsigned int current_col()
+int current_col()
 {
     return point - line_indices[current_line()];
 }
@@ -43,7 +44,7 @@ void update_line_indices()
 
     line_indices.push_back(0);
 
-    for (unsigned int i = 0; i < content.size(); i++) {
+    for (int i = 0; i < static_cast<int>(content.size()); i++) {
         if (content[i] == '\n') {
             line_indices.push_back(i + 1);
         }
@@ -58,6 +59,11 @@ void update_line_indices()
 // We must reconcile point and scroll offset so the point is visible again. We
 // can reconcile either by moving point or offset.
 
+// Defined below
+void set_point(int value, bool reconcile);
+void set_offset_line(int value, bool reconcile);
+void set_offset_col(int value, bool reconcile);
+
 void reconcile_by_moving_point()
 {
 
@@ -65,10 +71,25 @@ void reconcile_by_moving_point()
 
 void reconcile_by_scrolling()
 {
-    auto line = current_line();
+    int line = current_line();
+    int col = current_col();
 
-    if (line < offset_line) {
+    if (offset_line > line) {
+        set_offset_line(line, false);
+    }
 
+    int limit = line - line_count() + 3;
+    if (limit > 0 && offset_line < limit) {
+        set_offset_line(limit, false);
+    }
+
+    if (offset_col > col) {
+        set_offset_col(col, false);
+    }
+
+    limit = col - column_count() + 1;
+    if (limit > 0 && offset_col < limit) {
+        set_offset_col(limit, false);
     }
 }
 
@@ -83,7 +104,7 @@ void set_point(int value, bool reconcile)
         value = 0;
     }
 
-    point = static_cast<unsigned int>(value);
+    point = value;
 
     if (reconcile) {
         reconcile_by_scrolling();
@@ -110,7 +131,7 @@ void set_offset_line(int value, bool reconcile)
 
 void set_offset_col(int value, bool reconcile)
 {
-    auto current = current_line();
+    int current = current_line();
     int max = line_end(current) - line_indices[current] - 2;
 
     if (value > max) {
@@ -181,16 +202,16 @@ void end_of_buffer()
 
 void forward_line()
 {
-    auto current = current_line();
+    int current = current_line();
 
-    if (current < (line_indices.size() - 1)) {
+    if (current < (static_cast<int>(line_indices.size()) - 1)) {
         set_point(line_indices[current + 1], true);
     }
 }
 
 void backward_line()
 {
-    auto current = current_line();
+    int current = current_line();
 
     if (current > 0) {
         set_point(line_indices[current - 1], true);
@@ -252,7 +273,7 @@ void insert_character(char c)
 
 void delete_character_forward()
 {
-    if (point < content.length()) {
+    if (point < static_cast<int>(content.length())) {
         content.erase(point, 1);
         update_line_indices();
     }
