@@ -66,7 +66,27 @@ void set_offset_col(int value, bool reconcile);
 
 void reconcile_by_moving_point()
 {
+    int line = current_line();
+    int col = current_col();
 
+    int last_buffer_line = line_count() - 3;
+    int last_buffer_col = column_count() - 1;
+
+    if (line < offset_line) {
+        set_point(line_indices[offset_line], false);
+    }
+
+    if (last_buffer_line >= 0 && line > (offset_line + last_buffer_line)) {
+        set_point(line_indices[offset_line + last_buffer_line], false);
+    }
+
+    if (col < offset_col) {
+        set_point(point + (offset_col - col), false);
+    }
+
+    if (last_buffer_col >= 0 && col > (offset_col + last_buffer_col)) {
+        set_point(point - (col - (offset_col + last_buffer_col)), false);
+    }
 }
 
 void reconcile_by_scrolling()
@@ -74,22 +94,23 @@ void reconcile_by_scrolling()
     int line = current_line();
     int col = current_col();
 
-    if (offset_line > line) {
+    int last_buffer_line = line_count() - 3;
+    int last_buffer_col = column_count() - 1;
+
+    if (line < offset_line) {
         set_offset_line(line, false);
     }
 
-    int limit = line - line_count() + 3;
-    if (limit > 0 && offset_line < limit) {
-        set_offset_line(limit, false);
+    if (last_buffer_line >= 0 && line > (offset_line + last_buffer_line)) {
+        set_offset_line(line - last_buffer_line, false);
     }
 
-    if (offset_col > col) {
+    if (col < offset_col) {
         set_offset_col(col, false);
     }
 
-    limit = col - column_count() + 1;
-    if (limit > 0 && offset_col < limit) {
-        set_offset_col(limit, false);
+    if (last_buffer_col >= 0 && col > (offset_col + last_buffer_col)) {
+        set_offset_col(col - last_buffer_col, false);
     }
 }
 
