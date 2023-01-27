@@ -211,7 +211,23 @@ void set_offset_col(int value, bool reconcile)
     }
 }
 
+// Character helper
+constexpr bool is_whitespace(char c)
+{
+    return c == ' ' || c == '\t' || c == '\n' || c == '\r';
+}
+
 // Movement commands
+
+void begin_of_buffer()
+{
+    set_point(0, true, true);
+}
+
+void end_of_buffer()
+{
+    set_point(content.length(), true, true);
+}
 
 void forward_character()
 {
@@ -225,22 +241,54 @@ void backward_character()
 
 void forward_word()
 {
+    for (int i = point; i < static_cast<int>(content.length()) - 1; i++) {
+        if (!is_whitespace(content[i]) && is_whitespace(content[i + 1])) {
+            set_point(i + 1, true, true);
+            return;
+        }
+    }
 
+    // Not found, move to end of buffer
+    end_of_buffer();
 }
 
 void backward_word()
 {
+    for (int i = point - 1; i > 0; i--) {
+        if (!is_whitespace(content[i]) && is_whitespace(content[i - 1])) {
+            set_point(i, true, true);
+            return;
+        }
+    }
 
+    // Not found, move to start of buffer
+    begin_of_buffer();
 }
 
 void forward_paragraph()
 {
+    for (int i = point; i < static_cast<int>(content.length()) - 1; i++) {
+        if (content[i] == '\n' && content[i + 1] == '\n') {
+            set_point(i + 1, true, true);
+            return;
+        }
+    }
 
+    // Not found, move to end of buffer
+    end_of_buffer();
 }
 
 void backward_paragraph()
 {
+    for (int i = point - 1; i > 0; i--) {
+        if (content[i] == '\n' && content[i - 1] == '\n') {
+            set_point(i, true, true);
+            return;
+        }
+    }
 
+    // Not found, move to start of buffer
+    begin_of_buffer();
 }
 
 void begin_of_line()
@@ -251,16 +299,6 @@ void begin_of_line()
 void end_of_line()
 {
     set_point(line_end(current_line()), true, true);
-}
-
-void begin_of_buffer()
-{
-    set_point(0, true, true);
-}
-
-void end_of_buffer()
-{
-    set_point(content.length(), true, true);
 }
 
 void forward_line()
@@ -309,17 +347,17 @@ void scroll_right()
 
 void scroll_current_line_middle()
 {
-
+    set_offset_line(current_line() - ((line_count() - 2) / 2), true);
 }
 
 void scroll_page_up()
 {
-
+    set_offset_line(offset_line - line_count() + 3, true);
 }
 
 void scroll_page_down()
 {
-
+    set_offset_line(offset_line + line_count() - 3, true);
 }
 
 // Editing: insertion
