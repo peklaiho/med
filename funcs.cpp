@@ -217,6 +217,52 @@ constexpr bool is_whitespace(char c)
     return c == ' ' || c == '\t' || c == '\n' || c == '\r';
 }
 
+// Searching
+
+int word_boundary_forward(int index)
+{
+    for (; index < static_cast<int>(content.length()) - 1; index++) {
+        if (!is_whitespace(content[index]) && is_whitespace(content[index + 1])) {
+            return index;
+        }
+    }
+
+    return -1;
+}
+
+int word_boundary_backward(int index)
+{
+    for (; index > 0; index--) {
+        if (!is_whitespace(content[index]) && is_whitespace(content[index - 1])) {
+            return index;
+        }
+    }
+
+    return -1;
+}
+
+int paragraph_boundary_forward(int index)
+{
+    for (; index < static_cast<int>(content.length()) - 1; index++) {
+        if (content[index] == '\n' && content[index + 1] == '\n') {
+            return index;
+        }
+    }
+
+    return -1;
+}
+
+int paragraph_boundary_backward(int index)
+{
+    for (; index > 0; index--) {
+        if (content[index] == '\n' && content[index - 1] == '\n') {
+            return index;
+        }
+    }
+
+    return -1;
+}
+
 // Movement commands
 
 void begin_of_buffer()
@@ -241,54 +287,46 @@ void backward_character()
 
 void forward_word()
 {
-    for (int i = point; i < static_cast<int>(content.length()) - 1; i++) {
-        if (!is_whitespace(content[i]) && is_whitespace(content[i + 1])) {
-            set_point(i + 1, true, true);
-            return;
-        }
-    }
+    int result = word_boundary_forward(point);
 
-    // Not found, move to end of buffer
-    end_of_buffer();
+    if (result >= 0) {
+        set_point(result + 1, true, true);
+    } else {
+        end_of_buffer();
+    }
 }
 
 void backward_word()
 {
-    for (int i = point - 1; i > 0; i--) {
-        if (!is_whitespace(content[i]) && is_whitespace(content[i - 1])) {
-            set_point(i, true, true);
-            return;
-        }
-    }
+    int result = word_boundary_backward(point - 1);
 
-    // Not found, move to start of buffer
-    begin_of_buffer();
+    if (result >= 0) {
+        set_point(result, true, true);
+    } else {
+        begin_of_buffer();
+    }
 }
 
 void forward_paragraph()
 {
-    for (int i = point; i < static_cast<int>(content.length()) - 1; i++) {
-        if (content[i] == '\n' && content[i + 1] == '\n') {
-            set_point(i + 1, true, true);
-            return;
-        }
-    }
+    int result = paragraph_boundary_forward(point);
 
-    // Not found, move to end of buffer
-    end_of_buffer();
+    if (result >= 0) {
+        set_point(result + 1, true, true);
+    } else {
+        end_of_buffer();
+    }
 }
 
 void backward_paragraph()
 {
-    for (int i = point - 1; i > 0; i--) {
-        if (content[i] == '\n' && content[i - 1] == '\n') {
-            set_point(i, true, true);
-            return;
-        }
-    }
+    int result = paragraph_boundary_backward(point - 1);
 
-    // Not found, move to start of buffer
-    begin_of_buffer();
+    if (result >= 0) {
+        set_point(result, true, true);
+    } else {
+        begin_of_buffer();
+    }
 }
 
 void begin_of_line()
