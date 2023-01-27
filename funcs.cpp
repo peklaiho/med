@@ -7,10 +7,22 @@ std::string content;
 int point = 0;
 int offset_line = 0;
 int offset_col = 0;
+int goal_col = 0;
 bool edit_mode = false;
 
 extern int line_count();
 extern int column_count();
+
+constexpr int min_max(int val, int min, int max)
+{
+    if (val < min) {
+        return min;
+    }
+    if (val > max) {
+        return max;
+    }
+    return val;
+}
 
 // Update new indexes of lines
 // Must be called always after content changes!
@@ -75,7 +87,8 @@ int current_col()
 // can reconcile either by moving point or offset.
 
 // Defined below
-void set_point(int value, bool reconcile);
+void set_point(int value, bool reconcile, bool set_goal);
+bool goto_line(int line, bool reconcile);
 void set_offset_line(int value, bool reconcile);
 void set_offset_col(int value, bool reconcile);
 
@@ -88,19 +101,19 @@ void reconcile_by_moving_point()
     int last_buffer_col = column_count() - 1;
 
     if (line < offset_line) {
-        set_point(line_start(offset_line), false);
+        goto_line(offset_line, false);
     }
 
     if (last_buffer_line >= 0 && line > (offset_line + last_buffer_line)) {
-        set_point(line_start(offset_line + last_buffer_line), false);
+        goto_line(offset_line + last_buffer_line, false);
     }
 
     if (col < offset_col) {
-        set_point(point + (offset_col - col), false);
+        set_point(point + (offset_col - col), false, true);
     }
 
     if (last_buffer_col >= 0 && col > (offset_col + last_buffer_col)) {
-        set_point(point - (col - (offset_col + last_buffer_col)), false);
+        set_point(point - (col - (offset_col + last_buffer_col)), false, true);
     }
 }
 
@@ -131,7 +144,7 @@ void reconcile_by_scrolling()
 
 // Setters that call reconciliation as needed
 
-void set_point(int value, bool reconcile)
+void set_point(int value, bool reconcile, bool set_goal)
 {
     if (value > static_cast<int>(content.length())) {
         value = content.length();
@@ -145,6 +158,20 @@ void set_point(int value, bool reconcile)
     if (reconcile) {
         reconcile_by_scrolling();
     }
+
+    if (set_goal) {
+        goal_col = current_col();
+    }
+}
+
+bool goto_line(int line, bool reconcile)
+{
+    if (line >= 0 && line < num_of_lines()) {
+        set_point(min_max(line_start(line) + goal_col, line_start(line), line_end(line)), reconcile, false);
+        return true;
+    }
+
+    return false;
 }
 
 void set_offset_line(int value, bool reconcile)
@@ -188,12 +215,12 @@ void set_offset_col(int value, bool reconcile)
 
 void forward_character()
 {
-    set_point(point + 1, true);
+    set_point(point + 1, true, true);
 }
 
 void backward_character()
 {
-    set_point(point - 1, true);
+    set_point(point - 1, true, true);
 }
 
 void forward_word()
@@ -218,45 +245,44 @@ void backward_paragraph()
 
 void begin_of_line()
 {
-    set_point(line_start(current_line()), true);
+    set_point(line_start(current_line()), true, true);
 }
 
 void end_of_line()
 {
-    set_point(line_end(current_line()), true);
+    set_point(line_end(current_line()), true, true);
 }
 
 void begin_of_buffer()
 {
-    set_point(0, true);
+    set_point(0, true, true);
 }
 
 void end_of_buffer()
 {
-    set_point(content.length() - 1, true);
+    set_point(content.length(), true, true);
 }
 
 void forward_line()
 {
-    int current = current_line();
-
-    if (current < num_of_lines() - 1) {
-        set_point(line_start(current + 1), true);
-    }
+    goto_line(current_line() + 1, true);
 }
 
 void backward_line()
 {
-    int current = current_line();
-
-    if (current > 0) {
-        set_point(line_start(current - 1), true);
-    }
+    goto_line(current_line() - 1, true);
 }
 
 void back_to_indentation()
 {
+    int current = current_line();
+    int i = line_start(current);
 
+    while (i < line_end(current) && (content[i] == ' ' || content[i] == '\t')) {
+        i++;
+    }
+
+    set_point(i, true, true);
 }
 
 // Scrolling
