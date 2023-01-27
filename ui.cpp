@@ -5,14 +5,14 @@
 extern std::string med_version;
 extern std::string filename;
 extern std::string content;
-extern std::vector<int> line_indices;
-extern int point;
 extern int offset_line;
 extern int offset_col;
 extern bool edit_mode;
 
 extern void error(const std::string txt);
+extern int line_start(int index);
 extern int line_end(int index);
+extern int num_of_lines();
 extern int current_line();
 extern int current_col();
 
@@ -34,8 +34,8 @@ void draw_buffer()
 
     for (int row = 0; row < (line_count() - 2); row++) {
         int line = row + offset_line;
-        if (line < static_cast<int>(line_indices.size())) {
-            int start = line_indices[line] + offset_col;
+        if (line < num_of_lines()) {
+            int start = line_start(line) + offset_col;
             int end = line_end(line);
             int len = end - start;
 

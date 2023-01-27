@@ -5,12 +5,6 @@
 // Global variables
 std::string med_version = "0.1";
 std::string filename;
-std::string content;
-std::vector<int> line_indices;
-int point = 0;
-int offset_line = 0;
-int offset_col = 0;
-bool edit_mode = false;
 bool exit_app = false;
 
 // External functions

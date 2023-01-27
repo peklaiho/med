@@ -1,43 +1,19 @@
 #include <string>
 #include <vector>
 
-extern std::string content;
-extern std::vector<int> line_indices;
-extern int point;
-extern int offset_line;
-extern int offset_col;
+// Global variables
+std::vector<int> line_indices;
+std::string content;
+int point = 0;
+int offset_line = 0;
+int offset_col = 0;
+bool edit_mode = false;
 
 extern int line_count();
 extern int column_count();
 
-// Return last index of current line
-int line_end(int line)
-{
-    if (line == static_cast<int>(line_indices.size()) - 1) {
-        return content.length();
-    } else {
-        return line_indices[line + 1] - 1;
-    }
-}
-
-int current_line()
-{
-    int line = line_indices.size() - 1;
-
-    while (true) {
-        if (point < line_indices[line]) {
-            line--;
-        } else {
-            return line;
-        }
-    }
-}
-
-int current_col()
-{
-    return point - line_indices[current_line()];
-}
-
+// Update new indexes of lines
+// Must be called always after content changes!
 void update_line_indices()
 {
     line_indices.clear();
@@ -49,6 +25,45 @@ void update_line_indices()
             line_indices.push_back(i + 1);
         }
     }
+}
+
+int num_of_lines()
+{
+    return line_indices.size();
+}
+
+// Return first index of given line
+int line_start(int line)
+{
+    return line_indices[line];
+}
+
+// Return last index of given line
+int line_end(int line)
+{
+    if (line == num_of_lines() - 1) {
+        return content.length();
+    } else {
+        return line_start(line + 1) - 1;
+    }
+}
+
+int current_line()
+{
+    int line = num_of_lines() - 1;
+
+    while (true) {
+        if (point < line_start(line)) {
+            line--;
+        } else {
+            return line;
+        }
+    }
+}
+
+int current_col()
+{
+    return point - line_start(current_line());
 }
 
 // Reconciliation
@@ -73,11 +88,11 @@ void reconcile_by_moving_point()
     int last_buffer_col = column_count() - 1;
 
     if (line < offset_line) {
-        set_point(line_indices[offset_line], false);
+        set_point(line_start(offset_line), false);
     }
 
     if (last_buffer_line >= 0 && line > (offset_line + last_buffer_line)) {
-        set_point(line_indices[offset_line + last_buffer_line], false);
+        set_point(line_start(offset_line + last_buffer_line), false);
     }
 
     if (col < offset_col) {
@@ -134,7 +149,7 @@ void set_point(int value, bool reconcile)
 
 void set_offset_line(int value, bool reconcile)
 {
-    int max = line_indices.size() - 2;
+    int max = num_of_lines() - 2;
 
     if (value > max) {
         value = max;
@@ -153,7 +168,7 @@ void set_offset_line(int value, bool reconcile)
 void set_offset_col(int value, bool reconcile)
 {
     int current = current_line();
-    int max = line_end(current) - line_indices[current] - 2;
+    int max = line_end(current) - line_start(current) - 2;
 
     if (value > max) {
         value = max;
@@ -203,7 +218,7 @@ void backward_paragraph()
 
 void begin_of_line()
 {
-    set_point(line_indices[current_line()], true);
+    set_point(line_start(current_line()), true);
 }
 
 void end_of_line()
@@ -225,8 +240,8 @@ void forward_line()
 {
     int current = current_line();
 
-    if (current < (static_cast<int>(line_indices.size()) - 1)) {
-        set_point(line_indices[current + 1], true);
+    if (current < num_of_lines() - 1) {
+        set_point(line_start(current + 1), true);
     }
 }
 
@@ -235,7 +250,7 @@ void backward_line()
     int current = current_line();
 
     if (current > 0) {
-        set_point(line_indices[current - 1], true);
+        set_point(line_start(current - 1), true);
     }
 }
 
