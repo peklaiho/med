@@ -223,7 +223,7 @@ int word_boundary_forward(int index)
 {
     for (; index < static_cast<int>(content.length()) - 1; index++) {
         if (!is_whitespace(content[index]) && is_whitespace(content[index + 1])) {
-            return index;
+            return index + 1;
         }
     }
 
@@ -245,7 +245,7 @@ int paragraph_boundary_forward(int index)
 {
     for (; index < static_cast<int>(content.length()) - 1; index++) {
         if (content[index] == '\n' && content[index + 1] == '\n') {
-            return index;
+            return index + 1;
         }
     }
 
@@ -290,7 +290,7 @@ void forward_word()
     int result = word_boundary_forward(point);
 
     if (result >= 0) {
-        set_point(result + 1, true, true);
+        set_point(result, true, true);
     } else {
         end_of_buffer();
     }
@@ -312,7 +312,7 @@ void forward_paragraph()
     int result = paragraph_boundary_forward(point);
 
     if (result >= 0) {
-        set_point(result + 1, true, true);
+        set_point(result, true, true);
     } else {
         end_of_buffer();
     }
@@ -428,15 +428,47 @@ void delete_character_backward()
 
 void delete_word_forward()
 {
+    int len = static_cast<int>(content.length());
 
+    if (point < len) {
+        int result = word_boundary_forward(point);
+
+        if (result >= 0) {
+            content.erase(point, result - point);
+            update_line_indices();
+        } else {
+            content.erase(point, len - point);
+            update_line_indices();
+        }
+    }
 }
 
 void delete_word_backward()
 {
+    if (point > 0) {
+        int result = word_boundary_backward(point - 1);
 
+        if (result >= 0) {
+            content.erase(result, point - result);
+            update_line_indices();
+            set_point(result, true, true);
+        } else {
+            content.erase(0, point);
+            update_line_indices();
+            begin_of_buffer();
+        }
+    }
 }
 
 void delete_rest_of_line()
 {
+    int end = line_end(current_line());
 
+    if (point < end) {
+        content.erase(point, end - point);
+        update_line_indices();
+    } else {
+        // Delete one character (the newline)
+        delete_character_forward();
+    }
 }
