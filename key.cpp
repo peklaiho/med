@@ -165,6 +165,8 @@ void process_input()
         }
     } else if (key == 10 || key == 13) {
         insert_character('\n');
+    } else if (key == '\t') {
+        insert_character('\t');
     } else if (key >= 32 && key <= 126) {
         // Printable characters
         insert_character(key);
