@@ -138,17 +138,13 @@ void process_input()
 
     // Special keys
     if (key == KEY_UP) {
-        // backward_line();
-        scroll_up();
+        backward_line();
     } else if (key == KEY_DOWN) {
-        // forward_line();
-        scroll_down();
+        forward_line();
     } else if (key == KEY_LEFT) {
-        // backward_character();
-        scroll_left();
+        backward_character();
     } else if (key == KEY_RIGHT) {
-        // forward_character();
-        scroll_right();
+        forward_character();
     } else if (key == KEY_PPAGE) {
         scroll_page_up();
     } else if (key == KEY_NPAGE) {
