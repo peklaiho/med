@@ -18,12 +18,15 @@ extern int current_col();
 
 bool redraw_screen = false;
 
-int line_count()
+constexpr int line_buf_size = 4096;
+char line_buf[line_buf_size + 1];
+
+int screen_height()
 {
     return LINES;
 }
 
-int column_count()
+int screen_width()
 {
     return COLS;
 }
@@ -32,20 +35,40 @@ void draw_buffer()
 {
     color_set(0, 0);
 
-    for (int row = 0; row < (line_count() - 2); row++) {
+    for (int row = 0; row < (screen_height() - 2); row++) {
         int line = row + offset_line;
-        if (line < num_of_lines()) {
-            int start = line_start(line) + offset_col;
-            int end = line_end(line);
-            int len = end - start;
+        if (line >= num_of_lines()) {
+            break;
+        }
 
-            if (len > column_count()) {
-                len = column_count();
-            }
+        int buf_idx = 0, cont_idx = line_start(line);
 
-            if (len > 0) {
-                mvaddnstr(row, 0, content.data() + start, len);
+        while (buf_idx < line_buf_size && cont_idx < line_end(line)) {
+            char c = content[cont_idx++];
+
+            if (c == '\t') {
+                // Special handling for tabs
+                int spaces_to_add = TABSIZE - (buf_idx % TABSIZE);
+                for (int s = 0; s < spaces_to_add && buf_idx < line_buf_size; s++) {
+                    line_buf[buf_idx++] = ' ';
+                }
+            } else {
+                // Normal characters
+                line_buf[buf_idx++] = c;
             }
+        }
+
+        // Terminate with null
+        line_buf[buf_idx] = '\0';
+
+        int len = buf_idx - offset_col;
+
+        if (len > screen_width()) {
+            len = screen_width();
+        }
+
+        if (len > 0) {
+            mvaddnstr(row, 0, line_buf + offset_col, len);
         }
     }
 }
@@ -54,7 +77,7 @@ void draw_statusbar()
 {
     color_set(1, 0);
 
-    std::string str(column_count(), ' ');
+    std::string str(screen_width(), ' ');
     int col = 2;
 
     // Mode
@@ -74,7 +97,7 @@ void draw_statusbar()
     col += temp.length() + 2;
 
     // Debug
-    temp = std::to_string(offset_line);
+    temp = std::to_string(TABSIZE);
     str.replace(col, temp.length(), temp);
     col += temp.length();
     str.replace(col, 1, ":");
@@ -87,7 +110,7 @@ void draw_statusbar()
     str.replace(col, filename.length(), filename);
     col += filename.length();
 
-    mvaddnstr(line_count() - 2, 0, str.data(), column_count());
+    mvaddnstr(screen_height() - 2, 0, str.data(), screen_width());
 }
 
 void draw_minibuffer()

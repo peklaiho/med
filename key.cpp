@@ -157,6 +157,10 @@ void process_input()
         delete_character_forward();
     } else if (key == KEY_BACKSPACE) {
         delete_character_backward();
+    } else if (key == ',' && is_alt) {
+        scroll_left();
+    } else if (key == '.' && is_alt) {
+        scroll_right();
     } else if (key == ';') {
         if (is_alt) {
             insert_character(';');

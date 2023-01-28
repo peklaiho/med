@@ -10,8 +10,8 @@ int offset_col = 0;
 int goal_col = 0;
 bool edit_mode = false;
 
-extern int line_count();
-extern int column_count();
+extern int screen_height();
+extern int screen_width();
 
 constexpr int min_max(int val, int min, int max)
 {
@@ -97,8 +97,8 @@ void reconcile_by_moving_point()
     int line = current_line();
     int col = current_col();
 
-    int last_buffer_line = line_count() - 3;
-    int last_buffer_col = column_count() - 1;
+    int last_buffer_line = screen_height() - 3;
+    int last_buffer_col = screen_width() - 1;
 
     if (line < offset_line) {
         goto_line(offset_line, false);
@@ -122,8 +122,8 @@ void reconcile_by_scrolling()
     int line = current_line();
     int col = current_col();
 
-    int last_buffer_line = line_count() - 3;
-    int last_buffer_col = column_count() - 1;
+    int last_buffer_line = screen_height() - 3;
+    int last_buffer_col = screen_width() - 1;
 
     if (line < offset_line) {
         set_offset_line(line, false);
@@ -385,17 +385,17 @@ void scroll_right()
 
 void scroll_current_line_middle()
 {
-    set_offset_line(current_line() - ((line_count() - 2) / 2), true);
+    set_offset_line(current_line() - ((screen_height() - 2) / 2), true);
 }
 
 void scroll_page_up()
 {
-    set_offset_line(offset_line - line_count() + 3, true);
+    set_offset_line(offset_line - screen_height() + 3, true);
 }
 
 void scroll_page_down()
 {
-    set_offset_line(offset_line + line_count() - 3, true);
+    set_offset_line(offset_line + screen_height() - 3, true);
 }
 
 // Editing: insertion
