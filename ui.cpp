@@ -31,6 +31,32 @@ int screen_width()
     return COLS;
 }
 
+// Write given line to line_buf and return the length
+int line_to_buf(int line)
+{
+    int buf_idx = 0, cont_idx = line_start(line);
+
+    while (buf_idx < line_buf_size && cont_idx < line_end(line)) {
+        char c = content[cont_idx++];
+
+        if (c == '\t') {
+            // Special handling for tabs
+            int spaces_to_add = TABSIZE - (buf_idx % TABSIZE);
+            for (int s = 0; s < spaces_to_add && buf_idx < line_buf_size; s++) {
+                line_buf[buf_idx++] = ' ';
+            }
+        } else {
+            // Normal characters
+            line_buf[buf_idx++] = c;
+        }
+    }
+
+    // Terminate with null
+    line_buf[buf_idx] = '\0';
+
+    return buf_idx;
+}
+
 void draw_buffer()
 {
     color_set(0, 0);
@@ -41,27 +67,7 @@ void draw_buffer()
             break;
         }
 
-        int buf_idx = 0, cont_idx = line_start(line);
-
-        while (buf_idx < line_buf_size && cont_idx < line_end(line)) {
-            char c = content[cont_idx++];
-
-            if (c == '\t') {
-                // Special handling for tabs
-                int spaces_to_add = TABSIZE - (buf_idx % TABSIZE);
-                for (int s = 0; s < spaces_to_add && buf_idx < line_buf_size; s++) {
-                    line_buf[buf_idx++] = ' ';
-                }
-            } else {
-                // Normal characters
-                line_buf[buf_idx++] = c;
-            }
-        }
-
-        // Terminate with null
-        line_buf[buf_idx] = '\0';
-
-        int len = buf_idx - offset_col;
+        int len = line_to_buf(line) - offset_col;
 
         if (len > screen_width()) {
             len = screen_width();
