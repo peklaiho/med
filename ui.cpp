@@ -5,6 +5,7 @@
 extern std::string med_version;
 extern std::string filename;
 extern std::string content;
+extern int point;
 extern int offset_line;
 extern int offset_col;
 extern bool edit_mode;
@@ -57,6 +58,23 @@ int line_to_buf(int line)
     return buf_idx;
 }
 
+int virtual_column()
+{
+    int start = line_start(current_line());
+    int v_col = 0;
+
+    for (int i = start; i < point; i++) {
+        if (content[i] == '\t') {
+            // Special handling for tabs
+            v_col += TABSIZE - (v_col % TABSIZE);
+        } else {
+            v_col++;
+        }
+    }
+
+    return v_col;
+}
+
 void draw_buffer()
 {
     color_set(0, 0);
@@ -103,7 +121,7 @@ void draw_statusbar()
     col += temp.length() + 2;
 
     // Debug
-    temp = std::to_string(TABSIZE);
+    temp = std::to_string(virtual_column());
     str.replace(col, temp.length(), temp);
     col += temp.length();
     str.replace(col, 1, ":");
@@ -126,7 +144,7 @@ void draw_minibuffer()
 
 void draw_cursor()
 {
-    move(current_line() - offset_line, current_col() - offset_col);
+    move(current_line() - offset_line, virtual_column() - offset_col);
 }
 
 void draw_screen()
