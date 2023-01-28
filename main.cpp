@@ -3,7 +3,6 @@
 #include <clocale>
 
 // Global variables
-std::string med_version = "0.1";
 std::string filename;
 bool exit_app = false;
 

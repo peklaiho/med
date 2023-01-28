@@ -1,8 +1,8 @@
+#include <cstring>
 #include <string>
 #include <vector>
 #include <ncurses.h>
 
-extern std::string med_version;
 extern std::string filename;
 extern std::string content;
 extern int point;
@@ -19,8 +19,11 @@ extern int current_col();
 
 bool redraw_screen = false;
 
+// Buffers
 constexpr int line_buf_size = 4096;
+constexpr int status_buf_size = 512;
 char line_buf[line_buf_size + 1];
+char status_buf[status_buf_size + 1];
 
 int screen_height()
 {
@@ -101,40 +104,25 @@ void draw_statusbar()
 {
     color_set(1, 0);
 
-    std::string str(screen_width(), ' ');
-    int col = 2;
-
-    // Mode
-    if (edit_mode) {
-        str.replace(col, 4, "EDIT");
-        col += 6;
+    int max_len = status_buf_size;
+    if (screen_width() < max_len) {
+        max_len = screen_width();
     }
 
-    // Line and column
-    std::string temp = std::to_string(current_line() + 1);
-    str.replace(col, temp.length(), temp);
-    col += temp.length();
-    str.replace(col, 1, ":");
-    col++;
-    temp = std::to_string(current_col());
-    str.replace(col, temp.length(), temp);
-    col += temp.length() + 2;
+    std::snprintf(status_buf, max_len, "  %s%6d:%-5d%s",
+             edit_mode ? "EDIT" : "",
+             current_line() + 1,
+             current_col(),
+             filename.c_str());
 
-    // Debug
-    temp = std::to_string(virtual_column());
-    str.replace(col, temp.length(), temp);
-    col += temp.length();
-    str.replace(col, 1, ":");
-    col++;
-    temp = std::to_string(offset_col);
-    str.replace(col, temp.length(), temp);
-    col += temp.length() + 2;
+    // Fill remainder with spaces
+    int len = std::strlen(status_buf);
+    while (len < max_len) {
+        status_buf[len++] = ' ';
+    }
+    status_buf[len] = '\0';
 
-    // Filename
-    str.replace(col, filename.length(), filename);
-    col += filename.length();
-
-    mvaddnstr(screen_height() - 2, 0, str.data(), screen_width());
+    mvaddnstr(screen_height() - 2, 0, status_buf, len);
 }
 
 void draw_minibuffer()
