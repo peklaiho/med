@@ -170,6 +170,9 @@ void init_ui()
     intrflush(stdscr, false);
     keypad(stdscr, true);
 
+    // Use 4 spaces for tabs
+    set_tabsize(4);
+
     // Enable color
     start_color();
     use_default_colors();
