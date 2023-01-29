@@ -16,6 +16,10 @@ med: funcs.o io.o key.o main.o ui.o
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
+# Install the app in ~/bin
+install: med
+	cp -f med ~/bin/med
+
 # Delete the executable and object files
 clean:
 	rm -f med *.o
