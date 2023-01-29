@@ -6,6 +6,8 @@
 std::string filename;
 bool exit_app = false;
 
+extern bool file_error;
+
 // External functions
 extern void destroy_ui();
 extern void draw_screen();
@@ -42,7 +44,12 @@ int main(int argc, char *argv[])
     // Main loop
     main_loop();
 
-    // Cleanup
+    // Cleanup UI
     destroy_ui();
-    return 0;
+
+    if (file_error) {
+        error("Error occured while writing file!");
+    } else {
+        return 0;
+    }
 }

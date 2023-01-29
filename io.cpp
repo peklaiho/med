@@ -3,6 +3,8 @@
 #include <fstream>
 #include <filesystem>
 
+bool file_error = false;
+
 extern std::string filename;
 extern std::string content;
 
@@ -35,7 +37,13 @@ void read_file()
 
 void write_file()
 {
+    auto file = std::ofstream(filename, std::ios_base::out | std::ios_base::binary);
 
+    file.write(content.data(), content.size());
+
+    if (file.fail()) {
+        file_error = true;
+    }
 }
 
 void init_io()
