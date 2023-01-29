@@ -9,6 +9,7 @@ extern int point;
 extern int offset_line;
 extern int offset_col;
 extern bool edit_mode;
+extern bool content_changed;
 
 extern void error(const std::string txt);
 extern int line_start(int index);
@@ -18,6 +19,7 @@ extern int current_line();
 extern int current_col();
 
 bool redraw_screen = false;
+bool show_prompt = false;
 
 // Buffers
 constexpr int line_buf_size = 4096;
@@ -109,11 +111,12 @@ void draw_statusbar()
         max_len = screen_width();
     }
 
-    std::snprintf(status_buf, max_len, "  %s%6d:%-5d%s",
-             edit_mode ? "EDIT" : "",
-             current_line() + 1,
-             current_col(),
-             filename.c_str());
+    std::snprintf(status_buf, max_len, "%s%s%6d:%-5d%s",
+                  content_changed ? "  *" : "",
+                  edit_mode ? "  EDIT" : "",
+                  current_line() + 1,
+                  current_col(),
+                  filename.c_str());
 
     // Fill remainder with spaces
     int len = std::strlen(status_buf);
@@ -128,11 +131,19 @@ void draw_statusbar()
 void draw_minibuffer()
 {
     color_set(0, 0);
+
+    if (show_prompt) {
+        mvaddnstr(screen_height() - 1, 0, "Save changes (y/n/q)?", 21);
+    }
 }
 
 void draw_cursor()
 {
-    move(current_line() - offset_line, virtual_column() - offset_col);
+    if (show_prompt) {
+        move(screen_height() - 1, 22);
+    } else {
+        move(current_line() - offset_line, virtual_column() - offset_col);
+    }
 }
 
 void draw_screen()

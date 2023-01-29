@@ -1,9 +1,11 @@
 #include <string>
 #include <ncurses.h>
 
-extern bool redraw_screen;
-extern bool edit_mode;
 extern bool exit_app;
+extern bool redraw_screen;
+extern bool show_prompt;
+extern bool edit_mode;
+extern bool content_changed;
 
 extern void reconcile_by_scrolling();
 extern void forward_character();
@@ -32,6 +34,7 @@ extern void delete_character_backward();
 extern void delete_word_forward();
 extern void delete_word_backward();
 extern void delete_rest_of_line();
+extern void write_file();
 
 int read_key_no_delay()
 {
@@ -61,6 +64,19 @@ void process_input()
     if (key == KEY_RESIZE) {
         redraw_screen = true;
         reconcile_by_scrolling();
+        return;
+    }
+
+    // Handle prompt when exiting
+    if (show_prompt) {
+        if (key == 'q' || key == 'Q') {
+            show_prompt = false;
+        } else if (key == 'y' || key == 'Y') {
+            write_file();
+            exit_app = true;
+        } else if (key == 'n' || key == 'N') {
+            exit_app = true;
+        }
         return;
     }
 
@@ -120,7 +136,11 @@ void process_input()
                 forward_character();
             }
         } else if (key == 'q') {
-            exit_app = true;
+            if (content_changed) {
+                show_prompt = true;
+            } else {
+                exit_app = true;
+            }
         } else if (key == 'r') {
             scroll_current_line_middle();
         } else if (key == 't') {

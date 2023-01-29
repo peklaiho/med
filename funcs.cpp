@@ -9,6 +9,7 @@ int offset_line = 0;
 int offset_col = 0;
 int goal_col = 0;
 bool edit_mode = false;
+bool content_changed = false;
 
 extern int screen_height();
 extern int screen_width();
@@ -403,7 +404,9 @@ void scroll_page_down()
 void insert_character(char c)
 {
     content.insert(point, 1, c);
+    content_changed = true;
     update_line_indices();
+
     forward_character();
 }
 
@@ -413,6 +416,7 @@ void delete_character_forward()
 {
     if (point < static_cast<int>(content.length())) {
         content.erase(point, 1);
+        content_changed = true;
         update_line_indices();
     }
 }
@@ -421,7 +425,9 @@ void delete_character_backward()
 {
     if (point > 0) {
         content.erase(point - 1, 1);
+        content_changed = true;
         update_line_indices();
+
         backward_character();
     }
 }
@@ -435,9 +441,11 @@ void delete_word_forward()
 
         if (result >= 0) {
             content.erase(point, result - point);
+            content_changed = true;
             update_line_indices();
         } else {
             content.erase(point, len - point);
+            content_changed = true;
             update_line_indices();
         }
     }
@@ -450,11 +458,15 @@ void delete_word_backward()
 
         if (result >= 0) {
             content.erase(result, point - result);
+            content_changed = true;
             update_line_indices();
+
             set_point(result, true, true);
         } else {
             content.erase(0, point);
+            content_changed = true;
             update_line_indices();
+
             begin_of_buffer();
         }
     }
@@ -466,6 +478,7 @@ void delete_rest_of_line()
 
     if (point < end) {
         content.erase(point, end - point);
+        content_changed = true;
         update_line_indices();
     } else {
         // Delete one character (the newline)
