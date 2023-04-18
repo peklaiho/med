@@ -1,4 +1,3 @@
-#include <string>
 #include <ncurses.h>
 
 extern bool exit_app;

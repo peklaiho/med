@@ -1,6 +1,5 @@
 #include <cstring>
 #include <string>
-#include <vector>
 #include <ncurses.h>
 
 extern std::string filename;
