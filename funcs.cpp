@@ -40,19 +40,19 @@ void update_line_indices()
     }
 }
 
-int num_of_lines()
+[[nodiscard]] int num_of_lines()
 {
     return line_indices.size();
 }
 
 // Return first index of given line
-int line_start(int line)
+[[nodiscard]] int line_start(int line)
 {
     return line_indices[line];
 }
 
 // Return last index of given line
-int line_end(int line)
+[[nodiscard]] int line_end(int line)
 {
     if (line == num_of_lines() - 1) {
         return content.length();
@@ -61,7 +61,7 @@ int line_end(int line)
     }
 }
 
-int current_line()
+[[nodiscard]] int current_line()
 {
     int line = num_of_lines() - 1;
 
@@ -74,7 +74,7 @@ int current_line()
     }
 }
 
-int current_col()
+[[nodiscard]] int current_col()
 {
     return point - line_start(current_line());
 }
@@ -212,18 +212,26 @@ void set_offset_col(int value, bool reconcile)
     }
 }
 
-// Character helper
+// Character helpers
+
 constexpr bool is_whitespace(char c)
 {
     return c == ' ' || c == '\t' || c == '\n' || c == '\r';
 }
 
+constexpr bool is_letter_or_digit(char c)
+{
+    return (c >= '0' && c <= '9') ||
+        (c >= 'a' && c <= 'z') ||
+        (c >= 'A' && c <= 'Z');
+}
+
 // Searching
 
-int word_boundary_forward(int index)
+[[nodiscard]] int word_boundary_forward(int index)
 {
     for (; index < static_cast<int>(content.length()) - 1; index++) {
-        if (!is_whitespace(content[index]) && is_whitespace(content[index + 1])) {
+        if (is_letter_or_digit(content[index]) && !is_letter_or_digit(content[index + 1])) {
             return index + 1;
         }
     }
@@ -231,10 +239,10 @@ int word_boundary_forward(int index)
     return -1;
 }
 
-int word_boundary_backward(int index)
+[[nodiscard]] int word_boundary_backward(int index)
 {
     for (; index > 0; index--) {
-        if (!is_whitespace(content[index]) && is_whitespace(content[index - 1])) {
+        if (is_letter_or_digit(content[index]) && !is_letter_or_digit(content[index - 1])) {
             return index;
         }
     }
@@ -242,7 +250,7 @@ int word_boundary_backward(int index)
     return -1;
 }
 
-int paragraph_boundary_forward(int index)
+[[nodiscard]] int paragraph_boundary_forward(int index)
 {
     for (; index < static_cast<int>(content.length()) - 1; index++) {
         if (content[index] == '\n' && content[index + 1] == '\n') {
@@ -253,7 +261,7 @@ int paragraph_boundary_forward(int index)
     return -1;
 }
 
-int paragraph_boundary_backward(int index)
+[[nodiscard]] int paragraph_boundary_backward(int index)
 {
     for (; index > 0; index--) {
         if (content[index] == '\n' && content[index - 1] == '\n') {

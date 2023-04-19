@@ -20,44 +20,54 @@ extern int current_col();
 bool redraw_screen = false;
 bool show_prompt = false;
 
-// Buffers
-constexpr int line_buf_size = 4096;
-constexpr int status_buf_size = 512;
-char line_buf[line_buf_size + 1];
-char status_buf[status_buf_size + 1];
+// Buffer
+constexpr int buf_size = 2048;
+char buf[buf_size + 1];
 
-int screen_height()
+[[nodiscard]] int screen_height()
 {
     return LINES;
 }
 
-int screen_width()
+[[nodiscard]] int screen_width()
 {
     return COLS;
 }
 
-// Write given line to line_buf and return the length
+// Write given line to buf and return the length
 int line_to_buf(int line)
 {
-    int buf_idx = 0, cont_idx = line_start(line);
+    int buf_idx = 0;
 
-    while (buf_idx < line_buf_size && cont_idx < line_end(line)) {
-        char c = content[cont_idx++];
+    int max_len = buf_size;
+    if (screen_width() < max_len) {
+        max_len = screen_width();
+    }
+
+    for (int real_idx = line_start(line), virt_col = 0;
+         buf_idx < max_len && real_idx < line_end(line);) {
+        char c = content[real_idx++];
 
         if (c == '\t') {
             // Special handling for tabs
-            int spaces_to_add = TABSIZE - (buf_idx % TABSIZE);
-            for (int s = 0; s < spaces_to_add && buf_idx < line_buf_size; s++) {
-                line_buf[buf_idx++] = ' ';
+            int spaces_to_add = TABSIZE - (virt_col % TABSIZE);
+            for (int s = 0; s < spaces_to_add && buf_idx < max_len; s++) {
+                if (virt_col >= offset_col) {
+                    buf[buf_idx++] = ' ';
+                }
+                virt_col++;
             }
         } else {
             // Normal characters
-            line_buf[buf_idx++] = c;
+            if (virt_col >= offset_col) {
+                buf[buf_idx++] = c;
+            }
+            virt_col++;
         }
     }
 
     // Terminate with null
-    line_buf[buf_idx] = '\0';
+    buf[buf_idx] = '\0';
 
     return buf_idx;
 }
@@ -89,14 +99,10 @@ void draw_buffer()
             break;
         }
 
-        int len = line_to_buf(line) - offset_col;
-
-        if (len > screen_width()) {
-            len = screen_width();
-        }
+        int len = line_to_buf(line);
 
         if (len > 0) {
-            mvaddnstr(row, 0, line_buf + offset_col, len);
+            mvaddnstr(row, 0, buf, len);
         }
     }
 }
@@ -105,12 +111,12 @@ void draw_statusbar()
 {
     color_set(1, 0);
 
-    int max_len = status_buf_size;
+    int max_len = buf_size;
     if (screen_width() < max_len) {
         max_len = screen_width();
     }
 
-    std::snprintf(status_buf, max_len, "%s%s%6d:%-5d%s",
+    std::snprintf(buf, max_len, "%s%s  %d:%-d  %s",
                   content_changed ? "  *" : "",
                   edit_mode ? "  EDIT" : "",
                   current_line() + 1,
@@ -118,13 +124,13 @@ void draw_statusbar()
                   filename.c_str());
 
     // Fill remainder with spaces
-    int len = std::strlen(status_buf);
+    int len = std::strlen(buf);
     while (len < max_len) {
-        status_buf[len++] = ' ';
+        buf[len++] = ' ';
     }
-    status_buf[len] = '\0';
+    buf[len] = '\0';
 
-    mvaddnstr(screen_height() - 2, 0, status_buf, len);
+    mvaddnstr(screen_height() - 2, 0, buf, len);
 }
 
 void draw_minibuffer()
