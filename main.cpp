@@ -7,12 +7,6 @@ bool exit_app = false;
 std::unique_ptr<Buffer> current_buffer;
 
 // External functions
-extern int get_screen_width();
-extern int get_screen_height();
-extern void destroy_ui();
-extern void draw_screen();
-extern void init_io();
-extern void init_ui();
 extern void process_input();
 
 void error(std::string_view txt)
@@ -32,20 +26,14 @@ int main(int argc, char *argv[])
         error("Give filename as argument");
     }
 
-    // Init ui
-    init_ui();
-
     current_buffer = std::make_unique<Buffer>(argv[1]);
-    current_buffer->set_screen_size(get_screen_width(), get_screen_height());
+    Screen screen;
 
-    draw_screen();
+    screen.draw(*current_buffer);
 
     // Main loop
     while (!exit_app) {
         process_input();
-        draw_screen();
+        screen.draw(*current_buffer);
     }
-
-    // Cleanup UI
-    destroy_ui();
 }

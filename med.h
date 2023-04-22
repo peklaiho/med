@@ -9,8 +9,8 @@ private:
     std::string filename;
     std::string content;
 
-    int screen_width;
-    int screen_height;
+    int screen_width = 0;
+    int screen_height = 0;
 
     std::vector<int> line_indices;
 
@@ -99,4 +99,16 @@ public:
     void delete_word_forward();
     void delete_word_backward();
     void delete_rest_of_line();
+};
+
+class Screen
+{
+private:
+    int line_to_buf(int line);
+
+public:
+    Screen();
+    ~Screen();
+
+    void draw(Buffer& buffer);
 };

@@ -5,8 +5,6 @@
 
 extern void error(std::string_view txt);
 
-extern std::unique_ptr<Buffer> current_buffer;
-
 bool redraw_screen = false;
 bool show_prompt = false;
 
@@ -14,18 +12,18 @@ bool show_prompt = false;
 constexpr int buf_size = 2048;
 char buf[buf_size + 1];
 
-int get_screen_height()
+[[nodiscard]] int get_screen_height()
 {
     return LINES;
 }
 
-int get_screen_width()
+[[nodiscard]] int get_screen_width()
 {
     return COLS;
 }
 
 // Write given line to buf and return the length
-int line_to_buf(int line)
+int line_to_buf(const Buffer& buffer, const int line)
 {
     int buf_idx = 0;
 
@@ -34,22 +32,22 @@ int line_to_buf(int line)
         max_len = get_screen_width();
     }
 
-    for (int real_idx = current_buffer->line_start(line), virt_col = 0;
-         buf_idx < max_len && real_idx < current_buffer->line_end(line);) {
-        char c = current_buffer->get_char(real_idx++);
+    for (int real_idx = buffer.line_start(line), virt_col = 0;
+         buf_idx < max_len && real_idx < buffer.line_end(line);) {
+        char c = buffer.get_char(real_idx++);
 
         if (c == '\t') {
             // Special handling for tabs
             int spaces_to_add = TABSIZE - (virt_col % TABSIZE);
             for (int s = 0; s < spaces_to_add && buf_idx < max_len; s++) {
-                if (virt_col >= current_buffer->get_offset_col()) {
+                if (virt_col >= buffer.get_offset_col()) {
                     buf[buf_idx++] = ' ';
                 }
                 virt_col++;
             }
         } else {
             // Normal characters
-            if (virt_col >= current_buffer->get_offset_col()) {
+            if (virt_col >= buffer.get_offset_col()) {
                 buf[buf_idx++] = c;
             }
             virt_col++;
@@ -62,13 +60,13 @@ int line_to_buf(int line)
     return buf_idx;
 }
 
-int virtual_column()
+int virtual_column(const Buffer& buffer)
 {
-    int start = current_buffer->line_start(current_buffer->current_line());
+    int start = buffer.line_start(buffer.current_line());
     int v_col = 0;
 
-    for (int i = start; i < current_buffer->get_point(); i++) {
-        if (current_buffer->get_char(i) == '\t') {
+    for (int i = start; i < buffer.get_point(); i++) {
+        if (buffer.get_char(i) == '\t') {
             // Special handling for tabs
             v_col += TABSIZE - (v_col % TABSIZE);
         } else {
@@ -79,17 +77,17 @@ int virtual_column()
     return v_col;
 }
 
-void draw_buffer()
+void draw_buffer(const Buffer& buffer)
 {
     color_set(0, 0);
 
     for (int row = 0; row < (get_screen_height() - 2); row++) {
-        int line = row + current_buffer->get_offset_line();
-        if (line >= current_buffer->num_of_lines()) {
+        int line = row + buffer.get_offset_line();
+        if (line >= buffer.num_of_lines()) {
             break;
         }
 
-        int len = line_to_buf(line);
+        int len = line_to_buf(buffer, line);
 
         if (len > 0) {
             mvaddnstr(row, 0, buf, len);
@@ -97,7 +95,7 @@ void draw_buffer()
     }
 }
 
-void draw_statusbar()
+void draw_statusbar(const Buffer& buffer)
 {
     color_set(1, 0);
 
@@ -107,11 +105,11 @@ void draw_statusbar()
     }
 
     std::snprintf(buf, max_len, "%s%s  %d:%-d  %s",
-                  current_buffer->get_content_changed() ? "  *" : "",
-                  current_buffer->get_edit_mode() ? "  EDIT" : "",
-                  current_buffer->current_line() + 1,
-                  current_buffer->current_col(),
-                  current_buffer->get_filename().c_str());
+                  buffer.get_content_changed() ? "  *" : "",
+                  buffer.get_edit_mode() ? "  EDIT" : "",
+                  buffer.current_line() + 1,
+                  buffer.current_col(),
+                  buffer.get_filename().c_str());
 
     // Fill remainder with spaces
     int len = std::strlen(buf);
@@ -132,35 +130,37 @@ void draw_minibuffer()
     }
 }
 
-void draw_cursor()
+void draw_cursor(const Buffer& buffer)
 {
     if (show_prompt) {
         move(get_screen_height() - 1, 22);
     } else {
-        move(current_buffer->current_line() - current_buffer->get_offset_line(),
-             virtual_column() - current_buffer->get_offset_col());
+        move(buffer.current_line() - buffer.get_offset_line(),
+             virtual_column(buffer) - buffer.get_offset_col());
     }
 }
 
-void draw_screen()
+void Screen::draw(Buffer& buffer)
 {
     if (redraw_screen) {
         clear();
+        redraw_screen = false;
     } else {
         erase();
     }
 
-    redraw_screen = false;
+    buffer.set_screen_size(get_screen_width(), get_screen_height());
 
-    draw_buffer();
-    draw_statusbar();
+    draw_buffer(buffer);
+    draw_statusbar(buffer);
     draw_minibuffer();
-    draw_cursor();
+    draw_cursor(buffer);
 
     refresh();
 }
 
-void init_ui()
+// Constructor
+Screen::Screen()
 {
     // Initializion of ncurses is described here:
     // https://invisible-island.net/ncurses/man/ncurses.3x.html
@@ -187,7 +187,8 @@ void init_ui()
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
 }
 
-void destroy_ui()
+// Destructor
+Screen::~Screen()
 {
     endwin();
 }

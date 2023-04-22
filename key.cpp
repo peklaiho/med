@@ -37,7 +37,6 @@ void process_input()
     // Resize window
     if (key == KEY_RESIZE) {
         redraw_screen = true;
-        current_buffer->set_screen_size(get_screen_width(), get_screen_height());
         return;
     }
 

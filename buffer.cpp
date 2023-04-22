@@ -353,10 +353,14 @@ bool Buffer::get_content_changed() const
 
 void Buffer::set_screen_size(int width, int height)
 {
+    bool change = (screen_width != width) || (screen_height != height);
+
     screen_width = width;
     screen_height = height;
 
-    reconcile_by_scrolling();
+    if (change) {
+        reconcile_by_scrolling();
+    }
 }
 
 void Buffer::set_edit_mode(bool value)
