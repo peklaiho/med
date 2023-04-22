@@ -3,6 +3,8 @@
 #include <iostream>
 #include <memory>
 
+enum class InputResult { none, exit_app, next_buffer, prev_buffer };
+
 class Buffer
 {
 private:
@@ -107,16 +109,16 @@ private:
     bool redraw_screen = false;
     bool show_prompt = false;
 
-    void draw_buffer(const Buffer& buffer);
-    void draw_statusbar(const Buffer& buffer);
+    void draw_buffer(const Buffer* buffer);
+    void draw_statusbar(const Buffer* buffer);
     void draw_minibuffer();
-    void draw_cursor(const Buffer& buffer);
+    void draw_cursor(const Buffer* buffer);
 
 public:
     Screen();
     ~Screen();
 
-    void draw(Buffer& buffer);
+    void draw(Buffer* buffer);
     void size_changed();
     bool get_show_prompt() const;
     void set_show_prompt(bool value);
@@ -127,5 +129,5 @@ class Keyboard
 private:
 
 public:
-    void process_input(Screen& screen, Buffer& buffer);
+    InputResult process_input(Screen& screen, Buffer* buffer);
 };

@@ -2,9 +2,6 @@
 
 #include <clocale>
 
-// Global variables
-bool exit_app = false;
-
 void error(std::string_view txt)
 {
     std::cerr << txt << std::endl;
@@ -19,18 +16,41 @@ int main(int argc, char *argv[])
     }
 
     if (argc < 2) {
-        error("Give filename as argument");
+        error("Give filenames as arguments");
     }
 
-    Buffer buffer { argv[1] };
+    std::vector<std::unique_ptr<Buffer>> buffers;
+    int buffer_index = 0;
+
+    for (int i = 1; i < argc; i++) {
+        buffers.push_back(std::make_unique<Buffer>(argv[i]));
+    }
+
     Screen screen;
     Keyboard keys;
 
-    screen.draw(buffer);
+    screen.draw(buffers[buffer_index].get());
 
     // Main loop
-    while (!exit_app) {
-        keys.process_input(screen, buffer);
-        screen.draw(buffer);
+    while (true) {
+        auto input = keys.process_input(screen, buffers[buffer_index].get());
+
+        if (input == InputResult::exit_app) {
+            break;
+        } else if (input == InputResult::next_buffer) {
+            if (buffer_index < static_cast<int>(buffers.size()) - 1) {
+                buffer_index++;
+            } else {
+                buffer_index = 0;
+            }
+        } else if (input == InputResult::prev_buffer) {
+            if (buffer_index > 0) {
+                buffer_index--;
+            } else {
+                buffer_index = static_cast<int>(buffers.size()) - 1;
+            }
+        }
+
+        screen.draw(buffers[buffer_index].get());
     }
 }
