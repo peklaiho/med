@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 
     // Main loop
     while (true) {
-        auto input = keys.process_input(screen, buffers[buffer_index]);
+        auto input = keys.read_input(buffers[buffer_index]);
 
         if (input == InputResult::exit_app) {
             break;

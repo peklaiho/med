@@ -3,7 +3,7 @@
 #include <iostream>
 #include <memory>
 
-enum class InputResult { none, exit_app, next_buffer, prev_buffer };
+enum class InputResult { none, exit_app, next_buffer, prev_buffer, prompt_yes, prompt_no, prompt_quit, screen_size };
 
 class Buffer
 {
@@ -129,5 +129,6 @@ class Keyboard
 private:
 
 public:
-    InputResult process_input(Screen& screen, Buffer& buffer);
+    InputResult read_prompt();
+    InputResult read_input(Buffer& buffer);
 };

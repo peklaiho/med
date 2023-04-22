@@ -1,5 +1,6 @@
 #include "med.h"
 
+#include <tuple>
 #include <ncurses.h>
 
 int read_key_no_delay()
@@ -10,7 +11,7 @@ int read_key_no_delay()
     return key;
 }
 
-InputResult Keyboard::process_input(Screen& screen, Buffer& buffer)
+std::tuple<int, bool> read_key()
 {
     int key = getch();
     bool is_alt = false;
@@ -26,22 +27,42 @@ InputResult Keyboard::process_input(Screen& screen, Buffer& buffer)
         }
     }
 
+    return { key, is_alt };
+}
+
+InputResult Keyboard::read_prompt()
+{
+    int key;
+    bool is_alt;
+
+    std::tie(key, is_alt) = read_key();
+
     // Resize window
     if (key == KEY_RESIZE) {
-        screen.size_changed();
-        return InputResult::none;
+        return InputResult::screen_size;
     }
 
-    // Handle prompt when exiting
-    if (screen.get_show_prompt()) {
-        if (key == 'q' || key == 'Q') {
-            screen.set_show_prompt(false);
-        } else if (key == 'y' || key == 'Y') {
-            buffer.write_file();
-            return InputResult::exit_app;
-        } else if (key == 'n' || key == 'N') {
-            return InputResult::exit_app;
-        }
+    if (key == 'q' || key == 'Q') {
+        return InputResult::prompt_quit;
+    } else if (key == 'y' || key == 'Y') {
+        return InputResult::prompt_yes;
+    } else if (key == 'n' || key == 'N') {
+        return InputResult::prompt_no;
+    }
+
+    return InputResult::none;
+}
+
+InputResult Keyboard::read_input(Buffer& buffer)
+{
+    int key;
+    bool is_alt;
+
+    std::tie(key, is_alt) = read_key();
+
+    // Resize window
+    if (key == KEY_RESIZE) {
+        return InputResult::screen_size;
     }
 
     // Command mode: keys a to z are reserved
@@ -104,11 +125,7 @@ InputResult Keyboard::process_input(Screen& screen, Buffer& buffer)
         } else if (key == 'p') {
             return InputResult::prev_buffer;
         } else if (key == 'q') {
-            if (buffer.get_content_changed()) {
-                screen.set_show_prompt(true);
-            } else {
-                return InputResult::exit_app;
-            }
+            return InputResult::exit_app;
         } else if (key == 'r') {
             buffer.scroll_current_line_middle();
         } else if (key == 't') {
