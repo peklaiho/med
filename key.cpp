@@ -103,7 +103,11 @@ void Keyboard::process_input(Screen& screen, Buffer& buffer)
                 buffer.forward_character();
             }
         } else if (key == 'q') {
-            exit_app = true;
+            if (buffer.get_content_changed()) {
+                screen.set_show_prompt(true);
+            } else {
+                exit_app = true;
+            }
         } else if (key == 'r') {
             buffer.scroll_current_line_middle();
         } else if (key == 't') {
