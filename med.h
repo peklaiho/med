@@ -104,11 +104,28 @@ public:
 class Screen
 {
 private:
-    int line_to_buf(int line);
+    bool redraw_screen = false;
+    bool show_prompt = false;
+
+    void draw_buffer(const Buffer& buffer);
+    void draw_statusbar(const Buffer& buffer);
+    void draw_minibuffer();
+    void draw_cursor(const Buffer& buffer);
 
 public:
     Screen();
     ~Screen();
 
     void draw(Buffer& buffer);
+    void size_changed();
+    bool get_show_prompt() const;
+    void set_show_prompt(bool value);
+};
+
+class Keyboard
+{
+private:
+
+public:
+    void process_input(Screen& screen, Buffer& buffer);
 };

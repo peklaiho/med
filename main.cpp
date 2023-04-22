@@ -4,10 +4,6 @@
 
 // Global variables
 bool exit_app = false;
-std::unique_ptr<Buffer> current_buffer;
-
-// External functions
-extern void process_input();
 
 void error(std::string_view txt)
 {
@@ -26,14 +22,15 @@ int main(int argc, char *argv[])
         error("Give filename as argument");
     }
 
-    current_buffer = std::make_unique<Buffer>(argv[1]);
+    Buffer buffer { argv[1] };
     Screen screen;
+    Keyboard keys;
 
-    screen.draw(*current_buffer);
+    screen.draw(buffer);
 
     // Main loop
     while (!exit_app) {
-        process_input();
-        screen.draw(*current_buffer);
+        keys.process_input(screen, buffer);
+        screen.draw(buffer);
     }
 }

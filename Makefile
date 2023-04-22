@@ -3,8 +3,8 @@
 
 # Variables
 CXX = g++
-CXXFLAGS = -O2 -g -Wall -Wextra -std=c++20
-LDFLAGS = -O2 -g -Wall -Wextra -std=c++20
+CXXFLAGS = -O2 -Wall -Wextra -std=c++20
+LDFLAGS = -O2 -Wall -Wextra -std=c++20
 
 # Link the object files into an executable
 # The variable $^ is replaced with all the dependencies

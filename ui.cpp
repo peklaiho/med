@@ -5,9 +5,6 @@
 
 extern void error(std::string_view txt);
 
-bool redraw_screen = false;
-bool show_prompt = false;
-
 // Buffer
 constexpr int buf_size = 2048;
 char buf[buf_size + 1];
@@ -77,7 +74,7 @@ int virtual_column(const Buffer& buffer)
     return v_col;
 }
 
-void draw_buffer(const Buffer& buffer)
+void Screen::draw_buffer(const Buffer& buffer)
 {
     color_set(0, 0);
 
@@ -95,7 +92,7 @@ void draw_buffer(const Buffer& buffer)
     }
 }
 
-void draw_statusbar(const Buffer& buffer)
+void Screen::draw_statusbar(const Buffer& buffer)
 {
     color_set(1, 0);
 
@@ -121,7 +118,7 @@ void draw_statusbar(const Buffer& buffer)
     mvaddnstr(get_screen_height() - 2, 0, buf, len);
 }
 
-void draw_minibuffer()
+void Screen::draw_minibuffer()
 {
     color_set(0, 0);
 
@@ -130,7 +127,7 @@ void draw_minibuffer()
     }
 }
 
-void draw_cursor(const Buffer& buffer)
+void Screen::draw_cursor(const Buffer& buffer)
 {
     if (show_prompt) {
         move(get_screen_height() - 1, 22);
@@ -157,6 +154,21 @@ void Screen::draw(Buffer& buffer)
     draw_cursor(buffer);
 
     refresh();
+}
+
+void Screen::size_changed()
+{
+    redraw_screen = true;
+}
+
+bool Screen::get_show_prompt() const
+{
+    return show_prompt;
+}
+
+void Screen::set_show_prompt(bool value)
+{
+    show_prompt = value;
 }
 
 // Constructor
