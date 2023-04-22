@@ -19,21 +19,23 @@ int main(int argc, char *argv[])
         error("Give filenames as arguments");
     }
 
-    std::vector<std::unique_ptr<Buffer>> buffers;
+    std::vector<Buffer> buffers;
     int buffer_index = 0;
 
     for (int i = 1; i < argc; i++) {
-        buffers.push_back(std::make_unique<Buffer>(argv[i]));
+        // emplace_back constructs object in-place and appends
+        // it to the vector, avoiding copy or move operation
+        buffers.emplace_back(argv[i]);
     }
 
     Screen screen;
     Keyboard keys;
 
-    screen.draw(buffers[buffer_index].get());
+    screen.draw(buffers[buffer_index]);
 
     // Main loop
     while (true) {
-        auto input = keys.process_input(screen, buffers[buffer_index].get());
+        auto input = keys.process_input(screen, buffers[buffer_index]);
 
         if (input == InputResult::exit_app) {
             break;
@@ -51,6 +53,6 @@ int main(int argc, char *argv[])
             }
         }
 
-        screen.draw(buffers[buffer_index].get());
+        screen.draw(buffers[buffer_index]);
     }
 }
