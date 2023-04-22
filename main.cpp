@@ -1,54 +1,51 @@
-#include <string>
+#include "med.h"
+
 #include <clocale>
 
 // Global variables
-std::string filename;
 bool exit_app = false;
-
-extern bool file_error;
+std::unique_ptr<Buffer> current_buffer;
 
 // External functions
+extern int get_screen_width();
+extern int get_screen_height();
 extern void destroy_ui();
 extern void draw_screen();
-extern void error(const std::string txt);
 extern void init_io();
 extern void init_ui();
 extern void process_input();
 
-void main_loop()
+void error(std::string_view txt)
 {
-    while (!exit_app) {
-        process_input();
-        draw_screen();
-    }
+    std::cerr << txt << std::endl;
+    exit(1);
 }
 
 int main(int argc, char *argv[])
 {
-    if (argc < 2) {
-        error("Give filename as argument");
-    }
-
-    filename = argv[1];
-
     // Use locale from environment
     if (!setlocale(LC_ALL, "")) {
         error("Unable to set locale");
     }
 
-    // Inits
-    init_io();
+    if (argc < 2) {
+        error("Give filename as argument");
+    }
+
+    // Init ui
     init_ui();
 
+    current_buffer = std::make_unique<Buffer>(argv[1]);
+    current_buffer->set_screen_size(get_screen_width(), get_screen_height());
+
+    draw_screen();
+
     // Main loop
-    main_loop();
+    while (!exit_app) {
+        process_input();
+        draw_screen();
+    }
 
     // Cleanup UI
     destroy_ui();
-
-    if (file_error) {
-        error("Error occured while writing file!");
-    } else {
-        return 0;
-    }
 }
