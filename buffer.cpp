@@ -280,9 +280,9 @@ std::string Buffer::get_filename() const
     return filename;
 }
 
-char Buffer::get_char(int index) const
+std::string_view Buffer::get_content() const
 {
-    return content[index];
+    return std::string_view { content };
 }
 
 int Buffer::get_point() const

@@ -29,9 +29,11 @@ int line_to_buf(const Buffer& buffer, const int line)
         max_len = get_screen_width();
     }
 
+    auto content = buffer.get_content();
+
     for (int real_idx = buffer.line_start(line), virt_col = 0;
          buf_idx < max_len && real_idx < buffer.line_end(line);) {
-        char c = buffer.get_char(real_idx++);
+        char c = content[real_idx++];
 
         if (c == '\t') {
             // Special handling for tabs
@@ -62,8 +64,10 @@ int virtual_column(const Buffer& buffer)
     int start = buffer.line_start(buffer.current_line());
     int v_col = 0;
 
+    auto content = buffer.get_content();
+
     for (int i = start; i < buffer.get_point(); i++) {
-        if (buffer.get_char(i) == '\t') {
+        if (content[i] == '\t') {
             // Special handling for tabs
             v_col += TABSIZE - (v_col % TABSIZE);
         } else {

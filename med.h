@@ -50,7 +50,7 @@ public:
 
     // Getters
     [[nodiscard]] std::string get_filename() const;
-    [[nodiscard]] char get_char(int index) const;
+    [[nodiscard]] std::string_view get_content() const;
     [[nodiscard]] int get_point() const;
     [[nodiscard]] int num_of_lines() const;
     [[nodiscard]] int line_start(int line) const;
