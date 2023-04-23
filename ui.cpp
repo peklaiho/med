@@ -4,6 +4,9 @@
 #include <ncurses.h>
 
 extern void error(std::string_view txt);
+extern bool show_prompt;
+
+constexpr std::string_view prompt_string = "Save changes (y/n/q)?";
 
 // Buffer
 constexpr int buf_size = 2048;
@@ -127,14 +130,14 @@ void Screen::draw_minibuffer()
     color_set(0, 0);
 
     if (show_prompt) {
-        mvaddnstr(get_screen_height() - 1, 0, "Save changes (y/n/q)?", 21);
+        mvaddnstr(get_screen_height() - 1, 0, prompt_string.data(), prompt_string.size());
     }
 }
 
 void Screen::draw_cursor(const Buffer& buffer)
 {
     if (show_prompt) {
-        move(get_screen_height() - 1, 22);
+        move(get_screen_height() - 1, prompt_string.size() + 1);
     } else {
         move(buffer.current_line() - buffer.get_offset_line(),
              virtual_column(buffer) - buffer.get_offset_col());
@@ -163,16 +166,6 @@ void Screen::draw(Buffer& buffer)
 void Screen::size_changed()
 {
     redraw_screen = true;
-}
-
-bool Screen::get_show_prompt() const
-{
-    return show_prompt;
-}
-
-void Screen::set_show_prompt(bool value)
-{
-    show_prompt = value;
 }
 
 // Constructor

@@ -2,6 +2,8 @@
 
 #include <clocale>
 
+bool show_prompt = false;
+
 void error(std::string_view txt)
 {
     std::cerr << txt << std::endl;
@@ -31,28 +33,67 @@ int main(int argc, char *argv[])
     Screen screen;
     Keyboard keys;
 
-    screen.draw(buffers[buffer_index]);
-
     // Main loop
     while (true) {
-        auto input = keys.read_input(buffers[buffer_index]);
+        screen.draw(buffers[buffer_index]);
 
-        if (input == InputResult::exit_app) {
-            break;
-        } else if (input == InputResult::next_buffer) {
-            if (buffer_index < static_cast<int>(buffers.size()) - 1) {
-                buffer_index++;
-            } else {
-                buffer_index = 0;
+        if (show_prompt) {
+            bool quit_app = true;
+
+            for (int i = 0; i < static_cast<int>(buffers.size()); ) {
+                if (buffers[i].get_content_changed()) {
+                    screen.draw(buffers[i]);
+
+                    auto input = keys.read_prompt();
+
+                    if (input == InputResult::none) {
+                        // Invalid input, do nothing
+                    } else if (input == InputResult::screen_size) {
+                        // Screen size: do not go to next
+                        screen.size_changed();
+                    } else if (input == InputResult::prompt_no) {
+                        // No: go to next
+                        i++;
+                    } else if (input == InputResult::prompt_yes) {
+                        // Yes: save and go to next
+                        buffers[i].write_file();
+                        i++;
+                    } else if (input == InputResult::prompt_quit) {
+                        // Cancel quit
+                        quit_app = false;
+                        break;
+                    }
+                } else {
+                    // Not changed: go to next
+                    i++;
+                }
             }
-        } else if (input == InputResult::prev_buffer) {
-            if (buffer_index > 0) {
-                buffer_index--;
+
+            if (quit_app) {
+                break;
             } else {
-                buffer_index = static_cast<int>(buffers.size()) - 1;
+                show_prompt = false;
+            }
+        } else {
+            auto input = keys.read_input(buffers[buffer_index]);
+
+            if (input == InputResult::screen_size) {
+                screen.size_changed();
+            } else if (input == InputResult::exit_app) {
+                show_prompt = true;
+            } else if (input == InputResult::next_buffer) {
+                if (buffer_index < static_cast<int>(buffers.size()) - 1) {
+                    buffer_index++;
+                } else {
+                    buffer_index = 0;
+                }
+            } else if (input == InputResult::prev_buffer) {
+                if (buffer_index > 0) {
+                    buffer_index--;
+                } else {
+                    buffer_index = static_cast<int>(buffers.size()) - 1;
+                }
             }
         }
-
-        screen.draw(buffers[buffer_index]);
     }
 }

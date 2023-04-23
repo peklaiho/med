@@ -107,7 +107,6 @@ class Screen
 {
 private:
     bool redraw_screen = false;
-    bool show_prompt = false;
 
     void draw_buffer(const Buffer& buffer);
     void draw_statusbar(const Buffer& buffer);
@@ -120,8 +119,6 @@ public:
 
     void draw(Buffer& buffer);
     void size_changed();
-    bool get_show_prompt() const;
-    void set_show_prompt(bool value);
 };
 
 class Keyboard
