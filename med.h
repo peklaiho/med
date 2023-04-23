@@ -1,7 +1,6 @@
 #include <string>
 #include <vector>
 #include <iostream>
-#include <memory>
 
 enum class InputResult { none, exit_app, next_buffer, prev_buffer, prompt_yes, prompt_no, prompt_quit, screen_size };
 
