@@ -65,6 +65,12 @@ InputResult Keyboard::read_input(Buffer& buffer)
         return InputResult::screen_size;
     }
 
+    // Enter command mode: alt-j
+    if (buffer.get_edit_mode() && key == 'j' && is_alt) {
+        buffer.set_edit_mode(false);
+        return InputResult::none;
+    }
+
     // Command mode: keys a to z are reserved
     // for special commands.
     if (!buffer.get_edit_mode() && key >= 'a' && key <= 'z') {
@@ -166,12 +172,6 @@ InputResult Keyboard::read_input(Buffer& buffer)
         buffer.scroll_left();
     } else if (key == '.' && is_alt) {
         buffer.scroll_right();
-    } else if (key == ';') {
-        if (is_alt) {
-            buffer.insert_character(';');
-        } else {
-            buffer.set_edit_mode(false);
-        }
     } else if (key == 10 || key == 13) {
         buffer.insert_character('\n');
     } else if (key == '\t') {
