@@ -17,6 +17,7 @@ private:
     std::vector<int> line_indices;
 
     int point = 0;
+    int previous_point = 0;
     int offset_line = 0;
     int offset_col = 0;
     int goal_col = 0;
@@ -67,6 +68,8 @@ public:
     // Setters
     void set_screen_size(int width, int height);
     void set_edit_mode(bool value);
+    void store_point_location();
+    void restore_point_location();
 
     // Movement
     void begin_of_buffer();

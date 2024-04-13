@@ -62,12 +62,19 @@ InputResult Keyboard::read_input(Buffer& buffer)
     if (show_prompt == PromptType::search) {
         // Quit with Alt-q or Alt-j
         if ((key == 'q' || key == 'j') && is_alt) {
+            // Quit: restore point to location before search
+            buffer.restore_point_location();
             show_prompt = PromptType::none;
-        } else if (key == 10 || key == 13 || (key == 's' && is_alt)) {
+        } else if (key == 10 || key == 13) {
+            // Enter: keep point at current location
+            show_prompt = PromptType::none;
+        } else if ((key == 's' || key == 'n' || key == 'k') && is_alt) {
+            // Search forward
             if (search.length() > 0) {
                 buffer.search_forward(search);
             }
-        } else if (key == 'r' && is_alt) {
+        } else if ((key == 'r' || key == 'p' || key == 'i') && is_alt) {
+            // Search backward
             if (search.length() > 0) {
                 buffer.search_backward(search);
             }
@@ -160,6 +167,7 @@ InputResult Keyboard::read_input(Buffer& buffer)
         } else if (key == 'r') {
             buffer.scroll_current_line_middle();
         } else if (key == 's') {
+            buffer.store_point_location();
             show_prompt = PromptType::search;
         } else if (key == 't') {
             buffer.delete_rest_of_line();

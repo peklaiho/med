@@ -365,6 +365,16 @@ void Buffer::set_edit_mode(bool value)
     edit_mode = value;
 }
 
+void Buffer::store_point_location()
+{
+    previous_point = point;
+}
+
+void Buffer::restore_point_location()
+{
+    set_point(previous_point, true, true);
+}
+
 // Movement commands
 
 void Buffer::begin_of_buffer()
