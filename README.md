@@ -28,15 +28,15 @@ $ med readme.txt other.txt
 
 The default keybindings are set according to my own personal preferences. Any other user is encouraged to change the keybindings to their own preferences in `key.cpp` before compiling. A description of my default keys follows.
 
-The editor has two modes, similar to *vim*: command mode and edit mode. Use `f` to enter edit mode and `;` to enter command mode. `Alt-;` is used to input the literal `;` character.
+The editor has two modes, similar to *vim*: command mode and edit mode. Use <kbd>f</kbd> to enter edit mode and <kbd>Alt-j</kbd> to enter command mode.
 
-Use `n` and `p` to switch to next and previous buffer respectively in command mode.
+Use <kbd>n</kbd> and <kbd>p</kbd> to switch to next and previous buffer respectively in command mode.
 
-Use `i`, `j`, `k` and `l` to move around in command mode. When combined with `alt`, they move one word or paragraph at a time. Use `v` to scroll down and `alt-v` to scroll up. Use `r` to scroll the current line in the middle of the screen. Use `a` and `e` to move to the beginning and end of current line respectively. When combined with `alt`, `a` and `e` move to the beginning and end of the whole file. Use `b` to move to the first character after indentation.
+Use <kbd>i</kbd>, <kbd>j</kbd>, <kbd>k</kbd> and <kbd>l</kbd> to move around in command mode. When combined with <kbd>Alt</kbd>, they move one word or paragraph at a time. Use <kbd>v</kbd> to scroll down and <kbd>Alt-v</kbd> to scroll up. Use <kbd>r</kbd> to scroll the current line in the middle of the screen. Use <kbd>a</kbd> and <kbd>e</kbd> to move to the beginning and end of current line respectively. When combined with <kbd>Alt</kbd>, <kbd>a</kbd> and <kbd>e</kbd> move to the beginning and end of the whole file. Use <kbd>b</kbd> to move to the first character after indentation.
 
-Use `d` and `h` to delete characters forward and backward respectively. Combine them with `alt` to delete a whole word. Use `t` to delete the whole line starting from the cursor position.
+Use <kbd>d</kbd> and <kbd>h</kbd> to delete characters forward and backward respectively. Combine them with <kbd>Alt</kbd> to delete a whole word. Use <kbd>t</kbd> to delete the whole line starting from the cursor position.
 
-Use `q` to exit the editor. If any of the buffers have been modified, it will ask if you want to save changes.
+Use <kbd>q</kbd> to exit the editor. If any of the buffers have been modified, it will ask if you want to save changes.
 
 ## License
 
