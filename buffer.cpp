@@ -586,3 +586,37 @@ void Buffer::delete_rest_of_line()
         delete_character_forward();
     }
 }
+
+// Searching
+
+bool Buffer::search_forward(std::string_view txt)
+{
+    if (point == static_cast<int>(content.length())) {
+        return false;
+    }
+
+    auto pos = content.find(txt, point + 1);
+
+    if (pos == std::string::npos) {
+        return false;
+    }
+
+    set_point(pos, true, true);
+    return true;
+}
+
+bool Buffer::search_backward(std::string_view txt)
+{
+    if (point == 0) {
+        return false;
+    }
+
+    auto pos = content.rfind(txt, point - 1);
+
+    if (pos == std::string::npos) {
+        return false;
+    }
+
+    set_point(pos, true, true);
+    return true;
+}

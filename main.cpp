@@ -2,7 +2,7 @@
 
 #include <clocale>
 
-bool show_prompt = false;
+PromptType show_prompt = PromptType::none;
 
 void error(std::string_view txt)
 {
@@ -37,14 +37,14 @@ int main(int argc, char *argv[])
     while (true) {
         screen.draw(buffers[buffer_index]);
 
-        if (show_prompt) {
+        if (show_prompt == PromptType::quit) {
             bool quit_app = true;
 
             for (int i = 0; i < static_cast<int>(buffers.size()); ) {
                 if (buffers[i].get_content_changed()) {
                     screen.draw(buffers[i]);
 
-                    auto input = keys.read_prompt();
+                    auto input = keys.read_input(buffers[i]);
 
                     if (input == InputResult::none) {
                         // Invalid input, do nothing
@@ -72,15 +72,13 @@ int main(int argc, char *argv[])
             if (quit_app) {
                 break;
             } else {
-                show_prompt = false;
+                show_prompt = PromptType::none;
             }
         } else {
-            auto input = keys.read_input(buffers[buffer_index]);
+            InputResult input = keys.read_input(buffers[buffer_index]);
 
             if (input == InputResult::screen_size) {
                 screen.size_changed();
-            } else if (input == InputResult::exit_app) {
-                show_prompt = true;
             } else if (input == InputResult::next_buffer) {
                 if (buffer_index < static_cast<int>(buffers.size()) - 1) {
                     buffer_index++;

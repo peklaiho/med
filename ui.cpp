@@ -4,11 +4,13 @@
 #include <ncurses.h>
 
 extern void error(std::string_view txt);
-extern bool show_prompt;
+extern PromptType show_prompt;
 
-constexpr std::string_view prompt_string = "Save changes (y/n/q)?";
+constexpr std::string_view prompt_quit = "Save changes (y/n/q)?";
+constexpr std::string_view prompt_search = "Search: ";
 
 // Buffer
+std::string search;
 constexpr int buf_size = 2048;
 char buf[buf_size + 1];
 
@@ -129,15 +131,18 @@ void Screen::draw_minibuffer()
 {
     color_set(0, 0);
 
-    if (show_prompt) {
-        mvaddnstr(get_screen_height() - 1, 0, prompt_string.data(), prompt_string.size());
+    if (show_prompt == PromptType::quit) {
+        mvaddnstr(get_screen_height() - 1, 0, prompt_quit.data(), prompt_quit.size());
+    } else if (show_prompt == PromptType::search) {
+        mvaddnstr(get_screen_height() - 1, 0, prompt_search.data(), prompt_search.size());
+        mvaddnstr(get_screen_height() - 1, prompt_search.size(), search.data(), search.size());
     }
 }
 
 void Screen::draw_cursor(const Buffer& buffer)
 {
-    if (show_prompt) {
-        move(get_screen_height() - 1, prompt_string.size() + 1);
+    if (show_prompt == PromptType::quit) {
+        move(get_screen_height() - 1, prompt_quit.size() + 1);
     } else {
         move(buffer.current_line() - buffer.get_offset_line(),
              virtual_column(buffer) - buffer.get_offset_col());

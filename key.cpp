@@ -3,6 +3,9 @@
 #include <tuple>
 #include <ncurses.h>
 
+extern PromptType show_prompt;
+extern std::string search;
+
 int read_key_no_delay()
 {
     nodelay(stdscr, true);
@@ -30,29 +33,6 @@ std::tuple<int, bool> read_key()
     return { key, is_alt };
 }
 
-InputResult Keyboard::read_prompt()
-{
-    int key;
-    bool is_alt;
-
-    std::tie(key, is_alt) = read_key();
-
-    // Resize window
-    if (key == KEY_RESIZE) {
-        return InputResult::screen_size;
-    }
-
-    if (key == 'q' || key == 'Q') {
-        return InputResult::prompt_quit;
-    } else if (key == 'y' || key == 'Y') {
-        return InputResult::prompt_yes;
-    } else if (key == 'n' || key == 'N') {
-        return InputResult::prompt_no;
-    }
-
-    return InputResult::none;
-}
-
 InputResult Keyboard::read_input(Buffer& buffer)
 {
     int key;
@@ -64,6 +44,51 @@ InputResult Keyboard::read_input(Buffer& buffer)
     if (key == KEY_RESIZE) {
         return InputResult::screen_size;
     }
+
+    // Quit-prompt
+    if (show_prompt == PromptType::quit) {
+        if (key == 'q' || key == 'Q') {
+            return InputResult::prompt_quit;
+        } else if (key == 'y' || key == 'Y') {
+            return InputResult::prompt_yes;
+        } else if (key == 'n' || key == 'N') {
+            return InputResult::prompt_no;
+        }
+
+        return InputResult::none;
+    }
+
+    // Search prompt
+    if (show_prompt == PromptType::search) {
+        // Quit with Alt-q or Alt-j
+        if ((key == 'q' || key == 'j') && is_alt) {
+            show_prompt = PromptType::none;
+        } else if (key == 10 || key == 13 || (key == 's' && is_alt)) {
+            if (search.length() > 0) {
+                buffer.search_forward(search);
+            }
+        } else if (key == 'r' && is_alt) {
+            if (search.length() > 0) {
+                buffer.search_backward(search);
+            }
+        } else if (key == KEY_BACKSPACE) {
+            if (search.length() > 0) {
+                if (is_alt) {
+                    // Alt-backspace erases all
+                    search.clear();
+                } else {
+                    search.erase(search.length() - 1, 1);
+                }
+            }
+        } else if (key >= 32 && key <= 126) {
+            // Printable characters
+            search.insert(search.length(), 1, key);
+        }
+
+        return InputResult::none;
+    }
+
+    // -- not in prompt if we get here --
 
     // Enter command mode: alt-j
     if (buffer.get_edit_mode() && key == 'j' && is_alt) {
@@ -131,9 +156,11 @@ InputResult Keyboard::read_input(Buffer& buffer)
         } else if (key == 'p') {
             return InputResult::prev_buffer;
         } else if (key == 'q') {
-            return InputResult::exit_app;
+            show_prompt = PromptType::quit;
         } else if (key == 'r') {
             buffer.scroll_current_line_middle();
+        } else if (key == 's') {
+            show_prompt = PromptType::search;
         } else if (key == 't') {
             buffer.delete_rest_of_line();
         } else if (key == 'v') {

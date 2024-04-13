@@ -2,7 +2,8 @@
 #include <vector>
 #include <iostream>
 
-enum class InputResult { none, exit_app, next_buffer, prev_buffer, prompt_yes, prompt_no, prompt_quit, screen_size };
+enum class InputResult { none, next_buffer, prev_buffer, prompt_yes, prompt_no, prompt_quit, screen_size };
+enum class PromptType { none, search, quit };
 
 class Buffer
 {
@@ -100,6 +101,10 @@ public:
     void delete_word_forward();
     void delete_word_backward();
     void delete_rest_of_line();
+
+    // Searching
+    bool search_forward(std::string_view txt);
+    bool search_backward(std::string_view txt);
 };
 
 class Screen
@@ -125,6 +130,5 @@ class Keyboard
 private:
 
 public:
-    InputResult read_prompt();
     InputResult read_input(Buffer& buffer);
 };
