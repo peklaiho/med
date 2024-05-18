@@ -4,7 +4,7 @@
 
 ## Philosophy
 
-Before I created a simple text editor called [hacked](https://bitbucket.org/maddy83/hacked/) in Scheme (Lisp). This is essentially a more minimalistic version of the same but written in C++.
+Before I created a simple text editor called [hacked](https://github.com/peklaiho/hacked) in Scheme (Lisp). This is essentially a more minimalistic version of the same but written in C++.
 
 This editor contains minimal functionality currently and is only suitable for some quick-n-dirty editing of small files in the terminal. It could be used as a replacement for [nano](https://www.nano-editor.org/) or [vim](https://www.vim.org/) for example, but only if you are comfortable with the *ASCII* character set.
 
@@ -40,4 +40,4 @@ Use <kbd>q</kbd> to exit the editor. If any of the buffers have been modified, i
 
 ## License
 
-[MIT](https://bitbucket.org/maddy83/med/src/master/LICENSE)
+MIT
