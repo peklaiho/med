@@ -1,6 +1,6 @@
 # med - text editor
 
-*med* is minimal [ncurses](https://invisible-island.net/ncurses/) based text editor written in C++ by [Pekka Laiho](http://laihoconsulting.com/).
+*med* is a minimal [ncurses](https://invisible-island.net/ncurses/) based text editor written in C++.
 
 ## Philosophy
 
