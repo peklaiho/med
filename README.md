@@ -36,7 +36,11 @@ Use <kbd>i</kbd>, <kbd>j</kbd>, <kbd>k</kbd> and <kbd>l</kbd> to move around in 
 
 Use <kbd>d</kbd> and <kbd>h</kbd> to delete characters forward and backward respectively. Combine them with <kbd>Alt</kbd> to delete a whole word. Use <kbd>t</kbd> to delete the whole line starting from the cursor position.
 
-Use <kbd>q</kbd> to exit the editor. If any of the buffers have been modified, it will ask if you want to save changes.
+Use <kbd>g</kbd> to go to a specific line. Use <kbd>q</kbd> to abort.
+
+Use <kbd>s</kbd> to start search. Write the string to search for and press <kbd>Alt-s</kbd> to search forward or <kbd>Alt-r</kbd> to search backward. Hit return to exit search mode and keep cursor on current position. Use <kbd>Alt-q</kbd> to abort search and restore cursor to the position where search started. Note that searching is case-sensitive for now.
+
+Use <kbd>w</kbd> to write the buffer contents into file. Use <kbd>q</kbd> to exit the editor. If any of the buffers have been modified, it will ask if you want to save changes.
 
 ## License
 
