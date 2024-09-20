@@ -3,7 +3,7 @@
 #include <iostream>
 
 enum class InputResult { none, next_buffer, prev_buffer, prompt_yes, prompt_no, prompt_quit, screen_size };
-enum class PromptType { none, goline, search, quit };
+enum class PromptType { none, goline, search, quit, write };
 
 class Buffer
 {

@@ -271,6 +271,8 @@ void Buffer::write_file()
     if (file.fail()) {
         error("Unable to write file");
     }
+
+    content_changed = false;
 }
 
 // Getters

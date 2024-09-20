@@ -76,8 +76,8 @@ InputResult Keyboard::read_input(Buffer& buffer)
 
     // Goto prompt
     if (show_prompt == PromptType::goline) {
-        // Quit with Alt-q or Alt-j
-        if ((key == 'q' || key == 'j') && is_alt) {
+        // Quit with q
+        if (key == 'q') {
             buffer.restore_point_location();
             show_prompt = PromptType::none;
         } else if (key == 10 || key == 13) {
@@ -104,8 +104,8 @@ InputResult Keyboard::read_input(Buffer& buffer)
 
     // Search prompt
     if (show_prompt == PromptType::search) {
-        // Quit with Alt-q or Alt-j
-        if ((key == 'q' || key == 'j') && is_alt) {
+        // Quit with Alt-q
+        if (key == 'q' && is_alt) {
             // Quit: restore point to location before search
             buffer.restore_point_location();
             show_prompt = PromptType::none;
@@ -134,6 +134,18 @@ InputResult Keyboard::read_input(Buffer& buffer)
         } else if (key >= 32 && key <= 126) {
             // Printable characters
             prompt.insert(prompt.length(), 1, key);
+        }
+
+        return InputResult::none;
+    }
+
+    // Write prompt
+    if (show_prompt == PromptType::write) {
+        if (key == 'y' || key == 'Y') {
+            buffer.write_file();
+            show_prompt = PromptType::none;
+        } else if (key == 'n' || key == 'N' || key == 'q') {
+            show_prompt = PromptType::none;
         }
 
         return InputResult::none;
@@ -226,6 +238,8 @@ InputResult Keyboard::read_input(Buffer& buffer)
             } else {
                 buffer.scroll_page_down();
             }
+        } else if (key == 'w') {
+            show_prompt = PromptType::write;
         }
 
         return InputResult::none;
