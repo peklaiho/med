@@ -30,6 +30,22 @@ std::tuple<int, bool> read_key()
         }
     }
 
+    // ALT with arrow keys returns weird character codes
+    // so translate them back to something normal here.
+    if (key == 519) {
+        key = KEY_DOWN;
+        is_alt = true;
+    } else if (key == 529) {
+        key = KEY_UP;
+        is_alt = true;
+    } else if (key == 521) {
+        key = KEY_LEFT;
+        is_alt = true;
+    } else if (key == 527) {
+        key = KEY_RIGHT;
+        is_alt = true;
+    }
+
     return { key, is_alt };
 }
 
@@ -217,13 +233,29 @@ InputResult Keyboard::read_input(Buffer& buffer)
 
     // Special keys
     if (key == KEY_UP) {
-        buffer.backward_line();
+        if (is_alt) {
+            buffer.backward_paragraph();
+        } else {
+            buffer.backward_line();
+        }
     } else if (key == KEY_DOWN) {
-        buffer.forward_line();
+        if (is_alt) {
+            buffer.forward_paragraph();
+        } else {
+            buffer.forward_line();
+        }
     } else if (key == KEY_LEFT) {
-        buffer.backward_character();
+        if (is_alt) {
+            buffer.backward_word();
+        } else {
+            buffer.backward_character();
+        }
     } else if (key == KEY_RIGHT) {
-        buffer.forward_character();
+        if (is_alt) {
+            buffer.forward_word();
+        } else {
+            buffer.forward_character();
+        }
     } else if (key == KEY_PPAGE) {
         buffer.scroll_page_up();
     } else if (key == KEY_NPAGE) {
@@ -235,7 +267,11 @@ InputResult Keyboard::read_input(Buffer& buffer)
     } else if (key == KEY_DC) {
         buffer.delete_character_forward();
     } else if (key == KEY_BACKSPACE) {
-        buffer.delete_character_backward();
+        if (is_alt) {
+            buffer.delete_word_backward();
+        } else {
+            buffer.delete_character_backward();
+        }
     } else if (key == ',' && is_alt) {
         buffer.scroll_left();
     } else if (key == '.' && is_alt) {
