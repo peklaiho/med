@@ -6,11 +6,12 @@
 extern void error(std::string_view txt);
 extern PromptType show_prompt;
 
-constexpr std::string_view prompt_quit = "Save changes (y/n/q)?";
+constexpr std::string_view prompt_quit = "Save changes (y/n/q)? ";
 constexpr std::string_view prompt_search = "Search: ";
+constexpr std::string_view prompt_goline = "Goto line: ";
 
 // Buffer
-std::string search;
+std::string prompt;
 constexpr int buf_size = 2048;
 char buf[buf_size + 1];
 
@@ -135,14 +136,19 @@ void Screen::draw_minibuffer()
         mvaddnstr(get_screen_height() - 1, 0, prompt_quit.data(), prompt_quit.size());
     } else if (show_prompt == PromptType::search) {
         mvaddnstr(get_screen_height() - 1, 0, prompt_search.data(), prompt_search.size());
-        mvaddnstr(get_screen_height() - 1, prompt_search.size(), search.data(), search.size());
+        mvaddnstr(get_screen_height() - 1, prompt_search.size(), prompt.data(), prompt.size());
+    } else if (show_prompt == PromptType::goline) {
+        mvaddnstr(get_screen_height() - 1, 0, prompt_goline.data(), prompt_goline.size());
+        mvaddnstr(get_screen_height() - 1, prompt_goline.size(), prompt.data(), prompt.size());
     }
 }
 
 void Screen::draw_cursor(const Buffer& buffer)
 {
     if (show_prompt == PromptType::quit) {
-        move(get_screen_height() - 1, prompt_quit.size() + 1);
+        move(get_screen_height() - 1, prompt_quit.size());
+    } else if (show_prompt == PromptType::goline) {
+        move(get_screen_height() - 1, prompt_goline.size() + prompt.size());
     } else {
         move(buffer.current_line() - buffer.get_offset_line(),
              virtual_column(buffer) - buffer.get_offset_col());

@@ -3,7 +3,7 @@
 #include <iostream>
 
 enum class InputResult { none, next_buffer, prev_buffer, prompt_yes, prompt_no, prompt_quit, screen_size };
-enum class PromptType { none, search, quit };
+enum class PromptType { none, goline, search, quit };
 
 class Buffer
 {
@@ -29,7 +29,7 @@ private:
 
     // Setters
     void set_point(int value, bool reconcile, bool set_goal);
-    bool goto_line(int line, bool reconcile);
+    bool set_line(int line, bool reconcile);
     void set_offset_line(int value, bool reconcile);
     void set_offset_col(int value, bool reconcile);
 
@@ -85,6 +85,7 @@ public:
     void forward_line();
     void backward_line();
     void back_to_indentation();
+    void goto_line(int line);
 
     // Scrolling
     void scroll_up();

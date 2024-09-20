@@ -46,7 +46,7 @@ void Buffer::set_point(int value, bool reconcile, bool set_goal)
     }
 }
 
-bool Buffer::goto_line(int line, bool reconcile)
+bool Buffer::set_line(int line, bool reconcile)
 {
     if (line < 0 || line >= num_of_lines()) {
         return false;
@@ -122,11 +122,11 @@ void Buffer::reconcile_by_moving_point()
     int last_buffer_col = screen_width - 1;
 
     if (line < offset_line) {
-        goto_line(offset_line, false);
+        set_line(offset_line, false);
     }
 
     if (last_buffer_line >= 0 && line > (offset_line + last_buffer_line)) {
-        goto_line(offset_line + last_buffer_line, false);
+        set_line(offset_line + last_buffer_line, false);
     }
 
     if (col < offset_col) {
@@ -453,12 +453,12 @@ void Buffer::end_of_line()
 
 void Buffer::forward_line()
 {
-    goto_line(current_line() + 1, true);
+    set_line(current_line() + 1, true);
 }
 
 void Buffer::backward_line()
 {
-    goto_line(current_line() - 1, true);
+    set_line(current_line() - 1, true);
 }
 
 void Buffer::back_to_indentation()
@@ -471,6 +471,19 @@ void Buffer::back_to_indentation()
     }
 
     set_point(i, true, true);
+}
+
+void Buffer::goto_line(int line)
+{
+    if (line < 0) {
+        line = 0;
+    } else if (line >= num_of_lines()) {
+        line = num_of_lines() - 1;
+    }
+
+    set_line(line, true);
+
+    scroll_current_line_middle();
 }
 
 // Scrolling

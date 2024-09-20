@@ -4,7 +4,7 @@
 #include <ncurses.h>
 
 extern PromptType show_prompt;
-extern std::string search;
+extern std::string prompt;
 
 int read_key_no_delay()
 {
@@ -58,6 +58,34 @@ InputResult Keyboard::read_input(Buffer& buffer)
         return InputResult::none;
     }
 
+    // Goto prompt
+    if (show_prompt == PromptType::goline) {
+        // Quit with Alt-q or Alt-j
+        if ((key == 'q' || key == 'j') && is_alt) {
+            buffer.restore_point_location();
+            show_prompt = PromptType::none;
+        } else if (key == 10 || key == 13) {
+            // Enter: perform goto line
+            try {
+                buffer.goto_line(std::stoi(prompt) - 1);
+            } catch (...) {}
+            show_prompt = PromptType::none;
+        } else if (key == KEY_BACKSPACE) {
+            if (prompt.length() > 0) {
+                if (is_alt) {
+                    // Alt-backspace erases all
+                    prompt.clear();
+                } else {
+                    prompt.erase(prompt.length() - 1, 1);
+                }
+            }
+        } else if (key >= '0' && key <= '9') {
+            prompt.insert(prompt.length(), 1, key);
+        }
+
+        return InputResult::none;
+    }
+
     // Search prompt
     if (show_prompt == PromptType::search) {
         // Quit with Alt-q or Alt-j
@@ -70,26 +98,26 @@ InputResult Keyboard::read_input(Buffer& buffer)
             show_prompt = PromptType::none;
         } else if ((key == 's' || key == 'n' || key == 'k') && is_alt) {
             // Search forward
-            if (search.length() > 0) {
-                buffer.search_forward(search);
+            if (prompt.length() > 0) {
+                buffer.search_forward(prompt);
             }
         } else if ((key == 'r' || key == 'p' || key == 'i') && is_alt) {
             // Search backward
-            if (search.length() > 0) {
-                buffer.search_backward(search);
+            if (prompt.length() > 0) {
+                buffer.search_backward(prompt);
             }
         } else if (key == KEY_BACKSPACE) {
-            if (search.length() > 0) {
+            if (prompt.length() > 0) {
                 if (is_alt) {
                     // Alt-backspace erases all
-                    search.clear();
+                    prompt.clear();
                 } else {
-                    search.erase(search.length() - 1, 1);
+                    prompt.erase(prompt.length() - 1, 1);
                 }
             }
         } else if (key >= 32 && key <= 126) {
             // Printable characters
-            search.insert(search.length(), 1, key);
+            prompt.insert(prompt.length(), 1, key);
         }
 
         return InputResult::none;
@@ -128,6 +156,10 @@ InputResult Keyboard::read_input(Buffer& buffer)
             }
         } else if (key == 'f') {
             buffer.set_edit_mode(true);
+        } else if (key == 'g') {
+            buffer.store_point_location();
+            prompt.clear();
+            show_prompt = PromptType::goline;
         } else if (key == 'h') {
             if (is_alt) {
                 buffer.delete_word_backward();
@@ -168,6 +200,7 @@ InputResult Keyboard::read_input(Buffer& buffer)
             buffer.scroll_current_line_middle();
         } else if (key == 's') {
             buffer.store_point_location();
+            prompt.clear();
             show_prompt = PromptType::search;
         } else if (key == 't') {
             buffer.delete_rest_of_line();
