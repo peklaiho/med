@@ -49,6 +49,12 @@ std::tuple<int, bool> read_key()
     return { key, is_alt };
 }
 
+constexpr bool is_printable_char(int key)
+{
+    // Normal ascii or extended ascii
+    return (key >= 32 && key <= 126) || (key >= 128 && key <= 255);
+}
+
 InputResult Keyboard::read_input(Buffer& buffer)
 {
     int key;
@@ -131,7 +137,7 @@ InputResult Keyboard::read_input(Buffer& buffer)
                     prompt.erase(prompt.length() - 1, 1);
                 }
             }
-        } else if (key >= 32 && key <= 126) {
+        } else if (is_printable_char(key)) {
             // Printable characters
             prompt.insert(prompt.length(), 1, key);
         }
@@ -294,7 +300,7 @@ InputResult Keyboard::read_input(Buffer& buffer)
         buffer.insert_character('\n');
     } else if (key == '\t') {
         buffer.insert_character('\t');
-    } else if (key >= 32 && key <= 126) {
+    } else if (is_printable_char(key)) {
         // Printable characters
         buffer.insert_character(key);
     }
