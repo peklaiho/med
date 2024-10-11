@@ -24,35 +24,47 @@ std::string buf;
     return COLS;
 }
 
+// Copy up to 4 bytes (one character in UTF-8 is between 1 and 4 bytes)
+constexpr int utf8_char_to_buf(std::string_view content, int index)
+{
+    char first = content[index];
+
+    // Copy first char
+    buf.append(1, content[index++]);
+
+    // If MSB is set the character is more than 1 byte
+    // For ASCII we don't need go inside this if
+    if (first & 0b1000'0000) {
+        // Copy chars 2, 3 and 4
+        if (first & 0b1100'0000 && index < static_cast<int>(content.size())) {
+            buf.append(1, content[index++]);
+        }
+        if (first & 0b1110'0000 && index < static_cast<int>(content.size())) {
+            buf.append(1, content[index++]);
+        }
+        if (first & 0b1111'0000 && index < static_cast<int>(content.size())) {
+            buf.append(1, content[index++]);
+        }
+    }
+
+    // Return the new index
+    return index;
+}
+
 // Write given line to buf and return the length
 void line_to_buf(const Buffer& buffer, const int line)
 {
-    int max_len = static_cast<std::string::size_type>(get_screen_width());
+    int max_chars = static_cast<std::string::size_type>(get_screen_width());
+    int chars = 0;
 
     buf.clear();
 
+    int index = buffer.line_start(line);
     auto content = buffer.get_content();
 
-    for (int index = buffer.line_start(line), virt_col = 0;
-         buf.size() < max_len && index < buffer.line_end(line);) {
-        char c = content[index++];
-
-        if (c == '\t') {
-            // Special handling for tabs
-            int spaces_to_add = TABSIZE - (virt_col % TABSIZE);
-            for (int s = 0; s < spaces_to_add && buf.size() < max_len; s++) {
-                if (virt_col >= buffer.get_offset_col()) {
-                    buf.append(" ");
-                }
-                virt_col++;
-            }
-        } else {
-            // Normal characters
-            if (virt_col >= buffer.get_offset_col()) {
-                buf.append(1, c);
-            }
-            virt_col++;
-        }
+    while (chars < max_chars && index < buffer.line_end(line)) {
+        index = utf8_char_to_buf(content, index);
+        chars++;
     }
 }
 
@@ -104,7 +116,7 @@ void Screen::draw_statusbar(const Buffer& buffer)
     buf.append(buffer.get_filename());
 
     // Fill remainder with spaces
-    if (buf.size() < get_screen_width()) {
+    if (static_cast<int>(buf.size()) < get_screen_width()) {
         buf.append(get_screen_width() - buf.size(), ' ');
     }
 
