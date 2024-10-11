@@ -1,6 +1,5 @@
 #include "med.h"
 
-#include <cstring>
 #include <ncurses.h>
 
 extern void error(std::string_view txt);
@@ -13,8 +12,7 @@ constexpr std::string_view prompt_write = "Write file (y/n)? ";
 
 // Buffer
 std::string prompt;
-constexpr int buf_size = 2048;
-char buf[buf_size + 1];
+std::string buf;
 
 [[nodiscard]] int get_screen_height()
 {
@@ -27,43 +25,35 @@ char buf[buf_size + 1];
 }
 
 // Write given line to buf and return the length
-int line_to_buf(const Buffer& buffer, const int line)
+void line_to_buf(const Buffer& buffer, const int line)
 {
-    int buf_idx = 0;
+    int max_len = static_cast<std::string::size_type>(get_screen_width());
 
-    int max_len = buf_size;
-    if (get_screen_width() < max_len) {
-        max_len = get_screen_width();
-    }
+    buf.clear();
 
     auto content = buffer.get_content();
 
-    for (int real_idx = buffer.line_start(line), virt_col = 0;
-         buf_idx < max_len && real_idx < buffer.line_end(line);) {
-        char c = content[real_idx++];
+    for (int index = buffer.line_start(line), virt_col = 0;
+         buf.size() < max_len && index < buffer.line_end(line);) {
+        char c = content[index++];
 
         if (c == '\t') {
             // Special handling for tabs
             int spaces_to_add = TABSIZE - (virt_col % TABSIZE);
-            for (int s = 0; s < spaces_to_add && buf_idx < max_len; s++) {
+            for (int s = 0; s < spaces_to_add && buf.size() < max_len; s++) {
                 if (virt_col >= buffer.get_offset_col()) {
-                    buf[buf_idx++] = ' ';
+                    buf.append(" ");
                 }
                 virt_col++;
             }
         } else {
             // Normal characters
             if (virt_col >= buffer.get_offset_col()) {
-                buf[buf_idx++] = c;
+                buf.append(1, c);
             }
             virt_col++;
         }
     }
-
-    // Terminate with null
-    buf[buf_idx] = '\0';
-
-    return buf_idx;
 }
 
 int virtual_column(const Buffer& buffer)
@@ -95,38 +85,30 @@ void Screen::draw_buffer(const Buffer& buffer)
             break;
         }
 
-        int len = line_to_buf(buffer, line);
-
-        if (len > 0) {
-            mvaddnstr(row, 0, buf, len);
-        }
+        line_to_buf(buffer, line);
+        mvaddnstr(row, 0, buf.data(), buf.size());
     }
 }
 
 void Screen::draw_statusbar(const Buffer& buffer)
 {
     color_set(1, 0);
+    buf.clear();
 
-    int max_len = buf_size;
-    if (get_screen_width() < max_len) {
-        max_len = get_screen_width();
-    }
-
-    std::snprintf(buf, max_len, "%s%s  %d:%-d  %s",
-                  buffer.get_content_changed() ? "  *" : "",
-                  buffer.get_edit_mode() ? "  EDIT" : "",
-                  buffer.current_line() + 1,
-                  buffer.current_col(),
-                  buffer.get_filename().c_str());
+    buf.append(buffer.get_content_changed() ? "  *" : "");
+    buf.append(buffer.get_edit_mode() ? "  EDIT  " : "  ");
+    buf.append(std::to_string(buffer.current_line() + 1));
+    buf.append(":");
+    buf.append(std::to_string(buffer.current_col()));
+    buf.append("  ");
+    buf.append(buffer.get_filename());
 
     // Fill remainder with spaces
-    int len = std::strlen(buf);
-    while (len < max_len) {
-        buf[len++] = ' ';
+    if (buf.size() < get_screen_width()) {
+        buf.append(get_screen_width() - buf.size(), ' ');
     }
-    buf[len] = '\0';
 
-    mvaddnstr(get_screen_height() - 2, 0, buf, len);
+    mvaddnstr(get_screen_height() - 2, 0, buf.data(), buf.size());
 }
 
 void Screen::draw_minibuffer()
