@@ -68,25 +68,6 @@ void line_to_buf(const Buffer& buffer, const int line)
     }
 }
 
-int virtual_column(const Buffer& buffer)
-{
-    int start = buffer.line_start(buffer.current_line());
-    int v_col = 0;
-
-    auto content = buffer.get_content();
-
-    for (int i = start; i < buffer.get_point(); i++) {
-        if (content[i] == '\t') {
-            // Special handling for tabs
-            v_col += TABSIZE - (v_col % TABSIZE);
-        } else {
-            v_col++;
-        }
-    }
-
-    return v_col;
-}
-
 void Screen::draw_buffer(const Buffer& buffer)
 {
     color_set(0, 0);
@@ -150,7 +131,7 @@ void Screen::draw_cursor(const Buffer& buffer)
         move(get_screen_height() - 1, prompt_write.size());
     } else {
         move(buffer.current_line() - buffer.get_offset_line(),
-             virtual_column(buffer) - buffer.get_offset_col());
+             buffer.current_col() - buffer.get_offset_col());
     }
 }
 
