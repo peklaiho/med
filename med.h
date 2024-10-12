@@ -19,8 +19,8 @@ private:
     int point = 0;
     int previous_point = 0;
     int offset_line = 0;
-    int offset_col = 0;
-    int goal_col = 0;
+    int offset_col = 0; // virtual column
+    int goal_col = 0; // virtual column
 
     bool edit_mode = false;
     bool content_changed = false;
@@ -59,7 +59,8 @@ public:
     [[nodiscard]] int line_start(int line) const;
     [[nodiscard]] int line_end(int line) const;
     [[nodiscard]] int current_line() const;
-    [[nodiscard]] int current_col() const;
+    [[nodiscard]] int current_real_col() const;
+    [[nodiscard]] int current_virtual_col() const;
     [[nodiscard]] int get_offset_line() const;
     [[nodiscard]] int get_offset_col() const;
     [[nodiscard]] bool get_edit_mode() const;

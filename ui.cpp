@@ -131,7 +131,7 @@ void Screen::draw_cursor(const Buffer& buffer)
         move(get_screen_height() - 1, prompt_write.size());
     } else {
         move(buffer.current_line() - buffer.get_offset_line(),
-             buffer.current_col() - buffer.get_offset_col());
+             buffer.current_virtual_col() - buffer.get_offset_col());
     }
 }
 

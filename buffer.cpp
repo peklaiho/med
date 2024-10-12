@@ -42,7 +42,7 @@ void Buffer::set_point(int value, bool reconcile, bool set_goal)
     }
 
     if (set_goal) {
-        goal_col = current_col();
+        goal_col = current_virtual_col();
     }
 }
 
@@ -54,7 +54,7 @@ bool Buffer::set_line(int line, bool reconcile)
 
     int min = line_start(line);
     int max = line_end(line);
-    int p = min + goal_col;
+    int p = min + goal_col; // TODO: this is wrong
 
     if (p < min) {
         p = min;
@@ -326,9 +326,14 @@ int Buffer::current_line() const
     }
 }
 
-int Buffer::current_col() const
+int Buffer::current_real_col() const
 {
     return point - line_start(current_line());
+}
+
+int Buffer::current_virtual_col() const
+{
+
 }
 
 int Buffer::get_offset_line() const

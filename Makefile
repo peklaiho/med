@@ -9,7 +9,7 @@ LDFLAGS = -O2 -Wall -Wextra -std=c++20
 # Link the object files into an executable
 # The variable $^ is replaced with all the dependencies
 med: buffer.o key.o main.o ui.o
-	$(CXX) $(LDFLAGS) $^ -o $@ -lncurses
+	$(CXX) $(LDFLAGS) $^ -o $@ -lncursesw
 
 # Compile individual .cpp files into .o object files
 # The variable $< is replaced with the first dependency
