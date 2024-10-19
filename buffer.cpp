@@ -4,6 +4,8 @@
 #include <filesystem>
 
 extern void error(std::string_view txt);
+extern int utf8_length(std::string_view str, int index, int end);
+extern int utf8_length_bytes(std::string_view str, int index, int chars);
 
 // ---------------
 // Private methods
@@ -54,7 +56,7 @@ bool Buffer::set_line(int line, bool reconcile)
 
     int min = line_start(line);
     int max = line_end(line);
-    int p = min + goal_col; // TODO: this is wrong
+    int p = min + utf8_length_bytes(content, min, goal_col);
 
     if (p < min) {
         p = min;
@@ -89,7 +91,7 @@ void Buffer::set_offset_line(int value, bool reconcile)
 void Buffer::set_offset_col(int value, bool reconcile)
 {
     int current = current_line();
-    int max = line_end(current) - line_start(current) - 2;
+    int max = utf8_length(content, line_start(current), line_end(current)) - 2;
 
     if (value > max) {
         value = max;
@@ -115,51 +117,46 @@ void Buffer::set_offset_col(int value, bool reconcile)
 
 void Buffer::reconcile_by_moving_point()
 {
-    int line = current_line();
-    int col = current_col();
-
     int last_buffer_line = screen_height - 3;
     int last_buffer_col = screen_width - 1;
 
-    if (line < offset_line) {
+    if (current_line() < offset_line) {
         set_line(offset_line, false);
     }
 
-    if (last_buffer_line >= 0 && line > (offset_line + last_buffer_line)) {
+    if (current_line() > (offset_line + last_buffer_line)) {
         set_line(offset_line + last_buffer_line, false);
     }
 
-    if (col < offset_col) {
-        set_point(point + (offset_col - col), false, true);
+    if (current_virtual_col() < offset_col) {
+        set_point(point + utf8_length_bytes(content, point, offset_col - current_virtual_col()), false, true);
     }
 
-    if (last_buffer_col >= 0 && col > (offset_col + last_buffer_col)) {
-        set_point(point - (col - (offset_col + last_buffer_col)), false, true);
+    if (current_virtual_col() > (offset_col + last_buffer_col)) {
+        int start = line_start(current_line());
+        set_point(start + utf8_length_bytes(content, start, offset_col + last_buffer_col), false, true);
     }
 }
 
 void Buffer::reconcile_by_scrolling()
 {
-    int line = current_line();
-    int col = current_col();
-
     int last_buffer_line = screen_height - 3;
     int last_buffer_col = screen_width - 1;
 
-    if (line < offset_line) {
-        set_offset_line(line, false);
+    if (current_line() < offset_line) {
+        set_offset_line(current_line(), false);
     }
 
-    if (last_buffer_line >= 0 && line > (offset_line + last_buffer_line)) {
-        set_offset_line(line - last_buffer_line, false);
+    if (current_line() > (offset_line + last_buffer_line)) {
+        set_offset_line(current_line() - last_buffer_line, false);
     }
 
-    if (col < offset_col) {
-        set_offset_col(col, false);
+    if (current_virtual_col() < offset_col) {
+        set_offset_col(current_virtual_col(), false);
     }
 
-    if (last_buffer_col >= 0 && col > (offset_col + last_buffer_col)) {
-        set_offset_col(col - last_buffer_col, false);
+    if (current_virtual_col() > (offset_col + last_buffer_col)) {
+        set_offset_col(current_virtual_col() - last_buffer_col, false);
     }
 }
 
@@ -333,7 +330,7 @@ int Buffer::current_real_col() const
 
 int Buffer::current_virtual_col() const
 {
-
+    return utf8_length(content, line_start(current_line()), point);
 }
 
 int Buffer::get_offset_line() const

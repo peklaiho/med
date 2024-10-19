@@ -8,7 +8,7 @@ LDFLAGS = -O2 -Wall -Wextra -std=c++20
 
 # Link the object files into an executable
 # The variable $^ is replaced with all the dependencies
-med: buffer.o key.o main.o ui.o
+med: buffer.o key.o main.o ui.o utf8.o
 	$(CXX) $(LDFLAGS) $^ -o $@ -lncursesw
 
 # Compile individual .cpp files into .o object files
@@ -23,3 +23,6 @@ install: med
 # Delete the executable and object files
 clean:
 	rm -f med *.o
+
+# Phone targets
+.PHONY: clean install
