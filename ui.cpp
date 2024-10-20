@@ -3,8 +3,7 @@
 #include <ncurses.h>
 
 extern void error(std::string_view txt);
-extern int utf8_char_length(std::string_view str, int index, int end);
-extern int utf8_char(std::string_view str, int index, int end);
+extern int utf8_length_bytes(std::string_view str, int index, int chars);
 extern PromptType show_prompt;
 
 constexpr std::string_view prompt_quit = "Save changes (y/n/q)? ";
@@ -26,6 +25,30 @@ std::string buf;
     return COLS;
 }
 
+constexpr int char_to_buf(std::string_view str, int index, int end)
+{
+    char first = str[index++];
+    buf.append(1, first);
+    int len = 1;
+
+    if (first & 0b1000'0000) {
+        if (first & 0b1100'0000 && index < end) {
+            buf.append(1, str[index++]);
+            len++;
+        }
+        if (first & 0b1110'0000 && index < end) {
+            buf.append(1, str[index++]);
+            len++;
+        }
+        if (first & 0b1111'0000 && index < end) {
+            buf.append(1, str[index++]);
+            len++;
+        }
+    }
+
+    return len;
+}
+
 // Write given line to buf and return the length
 void line_to_buf(const Buffer& buffer, const int line)
 {
@@ -34,42 +57,15 @@ void line_to_buf(const Buffer& buffer, const int line)
 
     buf.clear();
 
+    auto content = buffer.get_content();
     int index = buffer.line_start(line);
     int end = buffer.line_end(line);
-    int skip = buffer.get_offset_col();
 
-    auto content = buffer.get_content();
+    // Skip over offset columns
+    index += utf8_length_bytes(content, index, buffer.get_offset_col());
 
     while (chars < max_chars && index < end) {
-        int utf8ch = utf8_char(content, index, end);
-        index += utf8_char_length(content, index, end);
-
-        // Skip over offset columns
-        if (skip > 0) {
-            skip--;
-            continue;
-        }
-
-        // Individual bytes
-        char first = utf8ch;
-        char second = utf8ch >> 8;
-        char third = utf8ch >> 16;
-        char fourth = utf8ch >> 24;
-
-        buf.append(1, first);
-
-        if (second != 0) {
-            buf.append(1, second);
-        }
-
-        if (third != 0) {
-            buf.append(1, third);
-        }
-
-        if (fourth != 0) {
-            buf.append(1, fourth);
-        }
-
+        index += char_to_buf(content, index, end);
         chars++;
     }
 }

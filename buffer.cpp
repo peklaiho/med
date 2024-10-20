@@ -4,8 +4,9 @@
 #include <filesystem>
 
 extern void error(std::string_view txt);
-extern int utf8_length(std::string_view str, int index, int end);
+extern int utf8_length_chars(std::string_view str, int index, int end);
 extern int utf8_length_bytes(std::string_view str, int index, int chars);
+extern int utf8_length_bytes_reverse(std::string_view str, int index, int chars);
 
 // ---------------
 // Private methods
@@ -91,7 +92,7 @@ void Buffer::set_offset_line(int value, bool reconcile)
 void Buffer::set_offset_col(int value, bool reconcile)
 {
     int current = current_line();
-    int max = utf8_length(content, line_start(current), line_end(current)) - 2;
+    int max = utf8_length_chars(content, line_start(current), line_end(current)) - 2;
 
     if (value > max) {
         value = max;
@@ -122,18 +123,15 @@ void Buffer::reconcile_by_moving_point()
 
     if (current_line() < offset_line) {
         set_line(offset_line, false);
-    }
-
-    if (current_line() > (offset_line + last_buffer_line)) {
+    } else if (current_line() > (offset_line + last_buffer_line)) {
         set_line(offset_line + last_buffer_line, false);
     }
 
-    if (current_virtual_col() < offset_col) {
-        set_point(point + utf8_length_bytes(content, point, offset_col - current_virtual_col()), false, true);
-    }
+    int start = line_start(current_line());
 
-    if (current_virtual_col() > (offset_col + last_buffer_col)) {
-        int start = line_start(current_line());
+    if (current_virtual_col() < offset_col) {
+        set_point(start + utf8_length_bytes(content, start, offset_col), false, true);
+    } else if (current_virtual_col() > (offset_col + last_buffer_col)) {
         set_point(start + utf8_length_bytes(content, start, offset_col + last_buffer_col), false, true);
     }
 }
@@ -145,17 +143,13 @@ void Buffer::reconcile_by_scrolling()
 
     if (current_line() < offset_line) {
         set_offset_line(current_line(), false);
-    }
-
-    if (current_line() > (offset_line + last_buffer_line)) {
+    } else if (current_line() > (offset_line + last_buffer_line)) {
         set_offset_line(current_line() - last_buffer_line, false);
     }
 
     if (current_virtual_col() < offset_col) {
         set_offset_col(current_virtual_col(), false);
-    }
-
-    if (current_virtual_col() > (offset_col + last_buffer_col)) {
+    } else if (current_virtual_col() > (offset_col + last_buffer_col)) {
         set_offset_col(current_virtual_col() - last_buffer_col, false);
     }
 }
@@ -330,7 +324,7 @@ int Buffer::current_real_col() const
 
 int Buffer::current_virtual_col() const
 {
-    return utf8_length(content, line_start(current_line()), point);
+    return utf8_length_chars(content, line_start(current_line()), point);
 }
 
 int Buffer::get_offset_line() const
@@ -393,12 +387,12 @@ void Buffer::end_of_buffer()
 
 void Buffer::forward_character()
 {
-    set_point(point + 1, true, true);
+    set_point(point + utf8_length_bytes(content, point, 1), true, true);
 }
 
 void Buffer::backward_character()
 {
-    set_point(point - 1, true, true);
+    set_point(point - utf8_length_bytes_reverse(content, point - 1, 1), true, true);
 }
 
 void Buffer::forward_word()
