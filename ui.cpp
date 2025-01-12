@@ -3,7 +3,10 @@
 #include <ncurses.h>
 
 extern void error(std::string_view txt);
+#ifdef MED_UTF8
 extern int utf8_length_bytes(std::string_view str, int index, int chars);
+#endif
+
 extern PromptType show_prompt;
 
 constexpr std::string_view prompt_quit = "Save changes (y/n/q)? ";
@@ -25,12 +28,17 @@ std::string buf;
     return COLS;
 }
 
+#ifdef MED_UTF8
 constexpr int char_to_buf(std::string_view str, int index, int end)
+#else
+constexpr int char_to_buf(std::string_view str, int index)
+#endif
 {
     char first = str[index++];
     buf.append(1, first);
     int len = 1;
 
+#ifdef MED_UTF8
     if (first & 0b1000'0000) {
         if (first & 0b1100'0000 && index < end) {
             buf.append(1, str[index++]);
@@ -45,6 +53,7 @@ constexpr int char_to_buf(std::string_view str, int index, int end)
             len++;
         }
     }
+#endif
 
     return len;
 }
@@ -62,10 +71,18 @@ void line_to_buf(const Buffer& buffer, const int line)
     int end = buffer.line_end(line);
 
     // Skip over offset columns
+#ifdef MED_UTF8
     index += utf8_length_bytes(content, index, buffer.get_offset_col());
+#else
+    index += buffer.get_offset_col();
+#endif
 
     while (chars < max_chars && index < end) {
+#ifdef MED_UTF8
         index += char_to_buf(content, index, end);
+#else
+        index += char_to_buf(content, index);
+#endif
         chars++;
     }
 }

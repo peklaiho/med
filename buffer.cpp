@@ -4,9 +4,12 @@
 #include <filesystem>
 
 extern void error(std::string_view txt);
+
+#ifdef MED_UTF8
 extern int utf8_length_chars(std::string_view str, int index, int end);
 extern int utf8_length_bytes(std::string_view str, int index, int chars);
 extern int utf8_length_bytes_reverse(std::string_view str, int index, int chars);
+#endif
 
 // ---------------
 // Private methods
@@ -57,7 +60,12 @@ bool Buffer::set_line(int line, bool reconcile)
 
     int min = line_start(line);
     int max = line_end(line);
+
+#ifdef MED_UTF8
     int p = min + utf8_length_bytes(content, min, goal_col);
+#else
+    int p = min + goal_col;
+#endif
 
     if (p < min) {
         p = min;
@@ -92,7 +100,12 @@ void Buffer::set_offset_line(int value, bool reconcile)
 void Buffer::set_offset_col(int value, bool reconcile)
 {
     int current = current_line();
+
+#ifdef MED_UTF8
     int max = utf8_length_chars(content, line_start(current), line_end(current)) - 2;
+#else
+    int max = line_end(current) - line_start(current) - 2;
+#endif
 
     if (value > max) {
         value = max;
@@ -130,9 +143,17 @@ void Buffer::reconcile_by_moving_point()
     int start = line_start(current_line());
 
     if (current_virtual_col() < offset_col) {
+#ifdef MED_UTF8
         set_point(start + utf8_length_bytes(content, start, offset_col), false, true);
+#else
+        set_point(start + offset_col, false, true);
+#endif
     } else if (current_virtual_col() > (offset_col + last_buffer_col)) {
+#ifdef MED_UTF8
         set_point(start + utf8_length_bytes(content, start, offset_col + last_buffer_col), false, true);
+#else
+        set_point(start + offset_col + last_buffer_col, false, true);
+#endif
     }
 }
 
@@ -324,7 +345,12 @@ int Buffer::current_real_col() const
 
 int Buffer::current_virtual_col() const
 {
+#ifdef MED_UTF8
     return utf8_length_chars(content, line_start(current_line()), point);
+#else
+    // Virtual column is same as real column without UTF-8
+    return current_real_col();
+#endif
 }
 
 int Buffer::get_offset_line() const
@@ -387,12 +413,20 @@ void Buffer::end_of_buffer()
 
 void Buffer::forward_character()
 {
+#ifdef MED_UTF8
     set_point(point + utf8_length_bytes(content, point, 1), true, true);
+#else
+    set_point(point + 1, true, true);
+#endif
 }
 
 void Buffer::backward_character()
 {
+#ifdef MED_UTF8
     set_point(point - utf8_length_bytes_reverse(content, point - 1, 1), true, true);
+#else
+    set_point(point - 1, true, true);
+#endif
 }
 
 void Buffer::forward_word()
